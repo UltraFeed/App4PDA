@@ -28,9 +28,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: App4PDA-*.apk
+          name: app-release.apk
           path: dist
-          merge-multiple: true
 
       - uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
@@ -39,4 +38,4 @@ jobs:
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           fail_on_unmatched_files: true
-          files: dist/App4PDA-*.apk
+          files: dist/app-release.apk
