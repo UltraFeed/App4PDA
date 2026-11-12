@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         super.onCreate(savedInstanceState)
+        selfUpdate.check(manual = false)
         enableEdgeToEdge()
         restoreCommands(savedInstanceState)
         var startupFrameReady = false

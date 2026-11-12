@@ -38,7 +38,6 @@ internal fun SelfUpdateDialogs(activity: MainActivity, update: SelfUpdate) {
         }
     LaunchedEffect(update) {
         activity.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            update.check(manual = false)
             update.state.collect { current ->
                 if (current is UpdateState.Message) {
                     Toast.makeText(activity, current.text, Toast.LENGTH_LONG).show()

@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
 import com.ketch.Status
 import io.github.ultrafeed.app4pda.R
-import io.github.ultrafeed.app4pda.core.AppPolicy
 import io.github.ultrafeed.app4pda.core.files.verifyFile
 import io.github.ultrafeed.app4pda.core.packages.PackageInspector
 import io.github.ultrafeed.app4pda.data.preferences.AppSettings
@@ -53,19 +52,14 @@ internal class SelfUpdate(
             if (pending != null) {
                 restoreDownload(Json.decodeFromString(pending))
             } else {
-                val now = System.currentTimeMillis()
-                val last = values[LAST_CHECK] as? Long ?: 0
-                if (manual || now - last !in 0 until AppPolicy.SELF_UPDATE_INTERVAL_MILLIS) {
-                    settings.writeValue(LAST_CHECK, now)
-                    val release =
-                        releases.latest()?.takeIf {
-                            newerVersion(it.version, app.installed().versionName)
-                        }
-                    mutableState.value =
-                        if (release != null) UpdateState.Offer(release)
-                        else if (manual) UpdateState.Message(R.string.self_update_current)
-                        else UpdateState.Idle
-                }
+                val release =
+                    releases.latest()?.takeIf {
+                        newerVersion(it.version, app.installed().versionName)
+                    }
+                mutableState.value =
+                    if (release != null) UpdateState.Offer(release)
+                    else if (manual) UpdateState.Message(R.string.self_update_current)
+                    else UpdateState.Idle
             }
         }
     }
@@ -164,18 +158,23 @@ internal class SelfUpdate(
     private fun verifyApk(path: String, version: String) {
         val artifacts = packages.artifacts
         val apk = checkNotNull(artifacts.readApk(path, artifacts.signatureQueryFlags))
-        check(apk.packageName == app.packageName && apk.versionName == version)
+        check(apk.packageName == app.packageName && apk.versionName == version) {
+            "Update APK package or version does not match the selected release"
+        }
         check(
             PackageInfoCompat.getLongVersionCode(apk) >
                 PackageInfoCompat.getLongVersionCode(app.installed()),
-        )
-        check(artifacts.hasSameInstalledSignatures(app.packageName, artifacts.getSignatures(apk)))
+        ) {
+            "Update APK versionCode must be greater than the installed versionCode"
+        }
+        check(artifacts.hasSameInstalledSignatures(app.packageName, artifacts.getSignatures(apk))) {
+            "Update APK signing certificate does not match the installed package"
+        }
     }
 
     override fun close() = scope.cancel()
 
     private companion object {
-        const val LAST_CHECK = "self_update_checked_at"
         const val PENDING = "self_update_pending"
         val terminalStatuses = setOf(Status.SUCCESS, Status.FAILED, Status.CANCELLED)
     }

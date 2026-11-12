@@ -3,7 +3,6 @@ package io.github.ultrafeed.app4pda.core
 /** Operational limits. UI dimensions and protocol identifiers remain with their own models. */
 object AppPolicy {
     /** Check for a new App4PDA release at most once per day on foreground entry. */
-    const val SELF_UPDATE_INTERVAL_MILLIS: Long = 24 * 60 * 60 * 1_000L
 
     /** Bounds resource draining and size recount during an explicit temporary-cache clear. */
     const val CACHE_CLEAR_TIMEOUT_MILLIS: Long = 30_000L
