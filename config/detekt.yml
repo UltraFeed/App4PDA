@@ -1,0 +1,20 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+# Compose UI functions follow the framework's PascalCase naming convention.
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongParameterList:
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+
+# ktfmt may retain unbreakable strings and comments beyond its preferred width.
+# Other compatible default style checks remain enabled, including modifier order
+# and the final newline. No additional formatter or ktlint wrapper is installed.
+style:
+  MaxLineLength:
+    active: false

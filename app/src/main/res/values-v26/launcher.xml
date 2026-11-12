@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="launcher_foreground_size">108dp</dimen>
+    <item type="drawable" name="app_launcher">@mipmap/ic_launcher</item>
+    <item type="drawable" name="app_launcher_accent">@mipmap/ic_launcher_accent</item>
+</resources>

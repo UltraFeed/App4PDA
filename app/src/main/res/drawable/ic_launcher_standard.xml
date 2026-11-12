@@ -1,0 +1,16 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <vector
+            android:width="48dp"
+            android:height="48dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+            <path
+                android:fillColor="@color/ic_launcher_background"
+                android:pathData="M20,4H88Q104,4 104,20V88Q104,104 88,104H20Q4,104 4,88V20Q4,4 20,4Z" />
+        </vector>
+    </item>
+    <item>
+        <inset android:inset="32%" android:drawable="@drawable/ic_launcher_foreground" />
+    </item>
+</layer-list>

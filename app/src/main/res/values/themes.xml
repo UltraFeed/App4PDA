@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Platform window only. All application UI styling belongs to Compose. -->
+    <style name="Theme.App4pda" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowActionModeOverlay">
+            true
+        </item>
+        <item name="android:windowBackground">
+            ?android:colorBackground
+        </item>
+    </style>
+    <style name="Theme.App4pda.Starting" parent="Theme.App4pda" />
+</resources>

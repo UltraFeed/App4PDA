@@ -1,0 +1,4 @@
+<resources>
+    <color name="launcher_accent">@android:color/system_accent1_200</color>
+    <color name="launcher_accent_background">@android:color/system_accent2_800</color>
+</resources>

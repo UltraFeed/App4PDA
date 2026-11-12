@@ -1,0 +1,10 @@
+<resources>
+    <color name="launcher_blue">#14A5F4</color>
+    <color name="launcher_accent">@color/launcher_blue</color>
+    <color name="launcher_accent_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <dimen name="launcher_foreground_size">48dp</dimen>
+    <string name="forum_logo_four_path" translatable="false">M89,22h67a6,6 0,0 1,6 6v136a6,6 0,0 1,-6 6h-40a6,6 0,0 1,-6 -6v-18H32a6,6 0,0 1,-6 -6v-34zM81,106h29V67z</string>
+    <item type="drawable" name="app_launcher">@drawable/ic_launcher_standard</item>
+    <item type="drawable" name="app_launcher_accent">@drawable/ic_launcher_standard</item>
+</resources>

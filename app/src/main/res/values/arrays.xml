@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="language">
+        <item>@string/system_default</item>
+        <item>@string/settings_main_language_ru</item>
+        <item>@string/settings_main_language_en</item>
+    </string-array>
+    <string-array name="language_value">
+        <item>default</item>
+        <item>ru</item>
+        <item>en</item>
+    </string-array>
+    <string-array name="open_downloads">
+        <item>@string/settings_downloads_open_downloads_ask</item>
+        <item>@string/settings_downloads_open_downloads_open</item>
+        <item>@string/settings_downloads_open_downloads_not_open</item>
+    </string-array>
+    <string-array name="open_downloads_value">
+        <item>ask</item>
+        <item>open</item>
+        <item>not_open</item>
+    </string-array>
+</resources>

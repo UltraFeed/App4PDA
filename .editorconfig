@@ -1,0 +1,72 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+tab_width = 4
+max_line_length = off
+ij_wrap_on_typing = false
+ij_visual_guides = none
+ij_smart_tabs = false
+ij_continuation_indent_size = 4
+ij_formatter_tags_enabled = false
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+ij_kotlin_imports_layout = *
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+ij_kotlin_packages_to_use_import_on_demand = unset
+
+[*.{xml,svg}]
+ij_xml_attribute_wrap = off
+ij_xml_text_wrap = off
+ij_xml_keep_line_breaks = true
+ij_xml_keep_line_breaks_in_text = true
+ij_xml_keep_blank_lines = 1
+ij_xml_keep_whitespaces = false
+ij_xml_align_attributes = false
+ij_xml_align_text = false
+ij_xml_space_after_tag_name = false
+ij_xml_space_inside_empty_tag = true
+
+[*.{json,jsonl,toml,yml,yaml}]
+indent_size = 2
+
+[*.{json,jsonl}]
+ij_json_array_wrapping = off
+ij_json_object_wrapping = off
+ij_json_property_alignment = do_not_align
+ij_json_space_before_colon = false
+ij_json_space_after_colon = true
+ij_json_keep_trailing_comma = false
+
+[*.{html,htm}]
+ij_html_attribute_wrap = off
+ij_html_text_wrap = off
+ij_html_keep_line_breaks = true
+ij_html_keep_line_breaks_in_text = true
+ij_html_keep_blank_lines = 1
+ij_html_keep_whitespaces = false
+ij_html_align_attributes = false
+ij_html_align_text = false
+ij_html_space_around_equality_in_attribute = false
+ij_html_space_after_tag_name = false
+ij_html_space_inside_empty_tag = true
+ij_html_newline_before_first_attribute = never
+ij_html_newline_after_last_attribute = never
+
+[*.sh]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+ij_markdown_wrap_text_if_long = false
+ij_markdown_wrap_text_inside_blockquotes = false
+ij_markdown_keep_line_breaks_inside_text_blocks = true
