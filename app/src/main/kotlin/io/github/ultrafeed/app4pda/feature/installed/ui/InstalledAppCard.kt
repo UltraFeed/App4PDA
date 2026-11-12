@@ -1,6 +1,5 @@
 package io.github.ultrafeed.app4pda.feature.installed.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -67,7 +66,6 @@ internal fun appCardIconSource(app: InstalledApp, section: AppSection?): AppImag
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun InstalledAppCard(
     app: InstalledApp,
@@ -163,9 +161,11 @@ private fun VersionCell(
             else
                 Image(
                     painterResource(
-                        if (source == VersionSource.FORUM) R.drawable.ic_4pda_small_color
-                        else if (source == VersionSource.PLAY) R.drawable.ic_market_small_color
-                        else R.drawable.ic_rustore,
+                        when (source) {
+                            VersionSource.FORUM -> R.drawable.ic_4pda_small_color
+                            VersionSource.PLAY -> R.drawable.ic_market_small_color
+                            else -> R.drawable.ic_rustore
+                        },
                     ),
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
@@ -223,11 +223,11 @@ private fun AppCardVersions(
                 VersionCell(
                     cell.source,
                     cell.version,
-                    if (cell.source == VersionSource.LOCAL && localStatus != AppVersionStatus.NONE)
+                    if (cell.source == VersionSource.LOCAL)
                         when (localStatus) {
                             AppVersionStatus.UPDATE_AVAILABLE -> colors.error
                             AppVersionStatus.INSTALLED_NEWER -> colors.tertiary
-                            AppVersionStatus.NONE -> colors.onSurface
+                            AppVersionStatus.NONE -> null
                         }
                     else null,
                     Modifier.fillMaxWidth(),

@@ -34,12 +34,22 @@ fun SettingsGate(content: @Composable () -> Unit) {
     val loaded by settings.state.collectAsState()
     when (val state = loaded) {
         SettingsLoad.Loading ->
-            AppTheme(isSystemInDarkTheme(), AppearanceDefaults.ACCENT, false) {
+            AppTheme(
+                isSystemInDarkTheme(),
+                AppearanceDefaults.ACCENT,
+                animationsEnabled = false,
+                applySystemBarContrast = false,
+            ) {
                 Surface(Modifier.fillMaxSize()) { Box { AppLoadingIndicator() } }
             }
 
         is SettingsLoad.Failed ->
-            AppTheme(isSystemInDarkTheme(), AppearanceDefaults.ACCENT, false) {
+            AppTheme(
+                isSystemInDarkTheme(),
+                AppearanceDefaults.ACCENT,
+                animationsEnabled = false,
+                applySystemBarContrast = false,
+            ) {
                 Surface(Modifier.fillMaxSize()) {
                     Column {
                         Text(stringResource(R.string.action_failed))

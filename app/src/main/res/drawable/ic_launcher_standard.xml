@@ -11,6 +11,8 @@
         </vector>
     </item>
     <item>
-        <inset android:inset="32%" android:drawable="@drawable/ic_launcher_foreground" />
+        <inset
+            android:inset="32%"
+            android:drawable="@drawable/ic_launcher_foreground" />
     </item>
 </layer-list>

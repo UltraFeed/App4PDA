@@ -5,8 +5,6 @@ import io.github.ultrafeed.app4pda.feature.installed.ui.VersionSource
 import io.github.ultrafeed.app4pda.feature.installed.ui.installedVersionCells
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AppVisibilityTest {
@@ -15,27 +13,27 @@ class AppVisibilityTest {
 
     @Test
     fun visibilityIsOnlyTheStoredFlag() {
-        assertFalse(background.hidden)
+        assertThat(background.hidden, `is`(false))
         val hidden = background.with(preferences = AppPreferences(hidden = true))
-        assertTrue(hidden.hidden)
-        assertFalse(hidden.eligibleForUpdates)
-        assertTrue(hidden.with(forum = ForumApp(topicId = 42)).hidden)
-        assertTrue(hidden.with(playDiscovery = SourceDiscovery(true, 1)).hidden)
-        assertTrue(hidden.with(market = MarketRelease("2", 2, 1)).hidden)
+        assertThat(hidden.hidden, `is`(true))
+        assertThat(hidden.eligibleForUpdates, `is`(false))
+        assertThat(hidden.with(forum = ForumApp(topicId = 42)).hidden, `is`(true))
+        assertThat(hidden.with(playDiscovery = SourceDiscovery(true, 1)).hidden, `is`(true))
+        assertThat(hidden.with(market = MarketRelease("2", 2, 1)).hidden, `is`(true))
     }
 
     @Test
     fun explicitChoicesAreNotChangedByDiscovery() {
-        val shown = background.with(preferences = AppPreferences(hidden = false))
-        assertFalse(shown.hidden)
+        val shown = background.with(preferences = AppPreferences())
+        assertThat(shown.hidden, `is`(false))
         val hidden =
             background.with(
                 preferences = AppPreferences(hidden = true),
                 forum = ForumApp(42),
             )
-        assertTrue(hidden.hidden)
-        assertTrue(hidden.with(playDiscovery = SourceDiscovery(true, 10)).hidden)
-        assertFalse(hidden.with(preferences = AppPreferences()).hidden)
+        assertThat(hidden.hidden, `is`(true))
+        assertThat(hidden.with(playDiscovery = SourceDiscovery(true, 10)).hidden, `is`(true))
+        assertThat(hidden.with(preferences = AppPreferences()).hidden, `is`(false))
     }
 
     @Test
@@ -47,9 +45,9 @@ class AppVisibilityTest {
             )
         val shown = background.with(forum = ForumApp(42, versionName = "2"))
         val apps = listOf(hidden, shown)
-        assertFalse(hidden.eligibleForUpdates)
-        assertFalse(hidden.visibleUpdate)
-        assertTrue(shown.visibleUpdate)
+        assertThat(hidden.eligibleForUpdates, `is`(false))
+        assertThat(hidden.visibleUpdate, `is`(false))
+        assertThat(shown.visibleUpdate, `is`(true))
         val state = InstalledAppsState(apps)
         AppSection.entries.forEach { section ->
             assertThat(
@@ -111,7 +109,7 @@ class AppVisibilityTest {
                 ),
             ),
         )
-        assertTrue(
+        assertThat(
             installedVersionCells(
                     background.with(
                         local =
@@ -122,6 +120,7 @@ class AppVisibilityTest {
                     false,
                 )
                 .isEmpty(),
+            `is`(true),
         )
     }
 }

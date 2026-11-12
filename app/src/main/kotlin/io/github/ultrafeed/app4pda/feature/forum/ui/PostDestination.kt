@@ -29,7 +29,7 @@ internal fun PostDestination(
     val postId = args.post
     val title = args.title
     val baseUrl = ForumUrls.post(topic, postId)
-    val model: ForumPostViewModel = koinViewModel() { parametersOf(topic, postId) }
+    val model: ForumPostViewModel = koinViewModel { parametersOf(topic, postId) }
     val state by model.state.collectAsStateWithLifecycle()
     fun external(url: String) {
         activity.openExternal(Intent(Intent.ACTION_VIEW, url.toUri()))
@@ -44,9 +44,16 @@ internal fun PostDestination(
                         ImageOrigin.FORUM,
                     ),
                 )
+
             is ForumPostLink.Attachment -> onOpen(AppDestination.Attachment(topic, parsed.url))
             is ForumPostLink.Post ->
-                onOpen(AppDestination.Post(parsed.address.topicId, parsed.address.postId, title))
+                onOpen(
+                    AppDestination.Post(
+                        parsed.address.topicId,
+                        parsed.address.postId,
+                        title,
+                    ),
+                )
 
             is ForumPostLink.Topic -> onOpen(AppDestination.Details(parsed.topicId, null))
             is ForumPostLink.External -> external(parsed.url)

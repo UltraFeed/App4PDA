@@ -4,32 +4,31 @@ import android.os.Build
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.snap
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowCompat
 import com.materialkolor.rememberDynamicColorScheme
-import io.github.ultrafeed.app4pda.app.MainActivity
-import io.github.ultrafeed.app4pda.app.shell.usesDarkSystemIcons
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun AppTheme(
     darkTheme: Boolean,
     accentColor: Int,
     animationsEnabled: Boolean = true,
     useSystemAccent: Boolean = true,
+    applySystemBarContrast: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val customScheme =
@@ -49,7 +48,7 @@ fun AppTheme(
         SideEffect {
             activity?.window?.setBackgroundDrawable(scheme.surface.toArgb().toDrawable())
             activity
-                ?.takeUnless { it is MainActivity }
+                ?.takeIf { applySystemBarContrast }
                 ?.let {
                     val controller = WindowCompat.getInsetsController(it.window, view)
                     val darkIcons =
@@ -71,9 +70,13 @@ fun AppTheme(
     }
 }
 
-val LocalAppAnimations = staticCompositionLocalOf { true }
+val LocalAppAnimations: ProvidableCompositionLocal<Boolean> = staticCompositionLocalOf { true }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+internal fun usesDarkSystemIcons(color: Int): Boolean =
+    Color(color).luminance() > DARK_ICONS_LUMINANCE_THRESHOLD
+
+private const val DARK_ICONS_LUMINANCE_THRESHOLD = 0.5f
+
 private object NoMotionScheme : MotionScheme {
     override fun <T> defaultSpatialSpec(): FiniteAnimationSpec<T> = snap()
 

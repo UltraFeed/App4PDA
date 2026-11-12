@@ -44,7 +44,7 @@ internal fun InstalledDestination(
     val repository: InstalledAppsRepository = koinInject()
     val section =
         if (home) AppSection.APPLICATIONS else (entry.destination as AppDestination.Apps).section
-    val model: InstalledAppsViewModel = koinViewModel() { parametersOf(section) }
+    val model: InstalledAppsViewModel = koinViewModel { parametersOf(section) }
     val ui by model.state.collectAsStateWithLifecycle()
     val appearance by activity.appearanceSettings.snapshots.collectAsStateWithLifecycle()
     val searchRequest = 0
@@ -123,11 +123,13 @@ private fun performInstalledAction(
                     app,
                     UpdateProvider.FORUM,
                 )
+
             InstalledAction.IGNORE_MARKET ->
                 model.ignoreSource(
                     app,
                     UpdateProvider.PLAY,
                 )
+
             InstalledAction.IGNORE_RUSTORE ->
                 model.ignoreSource(
                     app,
@@ -153,15 +155,22 @@ private fun rememberAppOpen(
         screenScope.launch {
             val query = model.bindingQuery(app) ?: return@launch
             if (latestActive)
-                onOpen(AppDestination.Catalog(filter = query, linked = app.packageName))
+                onOpen(
+                    AppDestination.Catalog(
+                        filter = query,
+                        linked = app.packageName,
+                    ),
+                )
         }
     }
 
     fun openApp(app: InstalledApp) {
         val knownStore =
-            listOf(app.market, app.ruStore).any { it != null } ||
-                app.playDiscovery.found ||
-                app.ruStoreDiscovery.found
+            listOf(
+                    app.market,
+                    app.ruStore,
+                )
+                .any { it != null } || app.playDiscovery.found || app.ruStoreDiscovery.found
         if (app.forum.topicId <= 0 && !knownStore) {
             searchBinding(app)
             return

@@ -26,23 +26,14 @@ class ForumInfo(
             screenshots.flatMap { listOfNotNull(it.previewUrl, it.galleryUrl) },
         ),
 ) : ForumSummary {
-    val topicId
+    val topicId: Int
         get() = header.topicId
 
-    val name
+    val name: String
         get() = header.name
 
-    val packageNames
+    val packageNames: List<String>
         get() = header.packageNames
-
-    val extra
-        get() = header.extra
-
-    val groupName
-        get() = header.groupName
-
-    val debugFlags
-        get() = header.debugFlags
 
     var shortDescription: String? = null
     var postId: Int = 0

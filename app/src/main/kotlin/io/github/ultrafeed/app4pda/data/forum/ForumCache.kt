@@ -103,7 +103,7 @@ interface ForumCacheDao {
     @Query("DELETE FROM entries") suspend fun clear()
 
     @Transaction
-    open suspend fun put(entry: ForumCacheEntry) {
+    suspend fun put(entry: ForumCacheEntry) {
         expire(entry.checkedAt - AppPolicy.CACHE_TTL_MILLIS)
         val existing = entry(entry.topicId, entry.messageId)
         if (existing != null && existing.content.contentEquals(entry.content)) {
@@ -135,7 +135,7 @@ class ForumCache(
 
     internal suspend fun revision(): Long = operations.withLock { generation }
 
-    suspend fun removeTopic(topic: Int) = operations.withLock {
+    suspend fun removeTopic(topic: Int): Unit = operations.withLock {
         generation++
         withContext(ioDispatcher) { open().entries().removeTopic(topic) }
     }
@@ -174,19 +174,6 @@ class ForumCache(
         }
     }
 
-    suspend fun getTotalSizeBytes(): Long = operations.withLock {
-        withContext(ioDispatcher) {
-            if (database == null && !File(directory, "forum-cache.db").exists()) 0L
-            else
-                open().entries().let {
-                    it.expire(
-                        System.currentTimeMillis() - AppPolicy.CACHE_TTL_MILLIS,
-                    )
-                    it.size()
-                }
-        }
-    }
-
     internal suspend fun putEntry(
         topicId: Int,
         dataId: Int,
@@ -217,7 +204,7 @@ class ForumCache(
         }
     }
 
-    suspend fun clear() = operations.withLock {
+    suspend fun clear(): Unit = operations.withLock {
         generation++
         withContext(ioDispatcher) {
             database?.close()

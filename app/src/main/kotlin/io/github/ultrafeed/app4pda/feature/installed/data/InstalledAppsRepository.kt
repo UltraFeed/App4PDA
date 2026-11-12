@@ -29,11 +29,12 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancel as cancelScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -77,7 +78,7 @@ internal constructor(
     private val users = localDatabase.users()
     private val refreshMutex = Mutex()
     private val mutableState = MutableStateFlow(InstalledAppsState())
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<InstalledAppsState> = mutableState.asStateFlow()
     private var refreshJob: Deferred<UpdateCheckResult>? = null
     private var packageRefreshJob: Job? = null
     private var cooldownResume: Job? = null
@@ -140,7 +141,11 @@ internal constructor(
                     it.errors +
                         (source to
                             if (source == UpdateSource.FORUM)
-                                SourceProblem.from(context, "4PDA", failure)
+                                SourceProblem.from(
+                                        context,
+                                        "4PDA",
+                                        failure,
+                                    )
                                     .copy(description = forumUpdateError(context, failure))
                             else
                                 SourceProblem.from(
@@ -156,9 +161,6 @@ internal constructor(
         dismissedFailures.putAll(failureKeys.filterKeys { it in mutableState.value.errors })
         mutableState.update { it.copy(errors = emptyMap()) }
     }
-
-    val bindings
-        get() = sources.forum
 
     fun foregroundChanged(active: Boolean) {
         foreground = active
@@ -294,28 +296,32 @@ internal constructor(
         }
 
         private suspend fun checkTopic(app: InstalledApp): Boolean {
-            if (users.installed(app.key)?.preferences?.ignoreForum != false) return true
-            return try {
-                when {
-                    app.forum.topicId > 0 -> {
-                        if (
-                            UpdateSource.FORUM in forceSources ||
-                                System.currentTimeMillis() - app.forum.fetchedAt >
-                                    AppPolicy.LINKED_TOPIC_INTERVAL_MILLIS
-                        )
-                            sources.forum.refreshLinked(app.key, app.forum.topicId)
+            return users.installed(app.key)?.preferences?.ignoreForum != false ||
+                try {
+                    when {
+                        app.forum.topicId > 0 -> {
+                            if (
+                                UpdateSource.FORUM in forceSources ||
+                                    System.currentTimeMillis() - app.forum.fetchedAt >
+                                        AppPolicy.LINKED_TOPIC_INTERVAL_MILLIS
+                            )
+                                sources.forum.refreshLinked(
+                                    app.key,
+                                    app.forum.topicId,
+                                )
+                        }
+
+                        automaticBindings && !app.bindingSearchCompleted ->
+                            sources.forum.discover(app.key)
                     }
-                    automaticBindings && !app.bindingSearchCompleted ->
-                        sources.forum.discover(app.key)
+                    true
+                } catch (failure: IOException) {
+                    forumFailed(failure)
+                } catch (failure: IllegalStateException) {
+                    forumFailed(failure)
+                } catch (failure: IllegalArgumentException) {
+                    forumFailed(failure)
                 }
-                true
-            } catch (failure: IOException) {
-                forumFailed(failure)
-            } catch (failure: IllegalStateException) {
-                forumFailed(failure)
-            } catch (failure: IllegalArgumentException) {
-                forumFailed(failure)
-            }
         }
 
         private suspend fun forumFailed(failure: Exception): Boolean {
@@ -329,7 +335,10 @@ internal constructor(
                         HttpStatusCode.Forbidden.value,
                     ) &&
                     it.reason !in
-                        setOf(ForumFailure.VERIFICATION_REQUIRED, ForumFailure.LOGIN_REQUIRED)
+                        setOf(
+                            ForumFailure.VERIFICATION_REQUIRED,
+                            ForumFailure.LOGIN_REQUIRED,
+                        )
             } ?: true
         }
 
@@ -342,7 +351,10 @@ internal constructor(
                 cooldownResume?.cancel()
                 cooldownResume = scope.launch {
                     delay(
-                        maxOf(failure.retryAfterMillis ?: 0, AppPolicy.SEARCH_COOLDOWN_MILLIS)
+                        maxOf(
+                                failure.retryAfterMillis ?: 0,
+                                AppPolicy.SEARCH_COOLDOWN_MILLIS,
+                            )
                             .milliseconds,
                     )
                     if (foreground) refresh(forceSources = setOf(UpdateSource.FORUM))
@@ -401,16 +413,12 @@ internal constructor(
             mutableState.update {
                 it.copy(
                     completed =
-                        (target ?: it.completed + 1).coerceAtMost(
+                        ((target ?: (it.completed + 1))).coerceAtMost(
                             (it.total - if (failures > 0) 1 else 0).coerceAtLeast(0),
                         ),
                 )
             }
         }
-    }
-
-    suspend fun awaitRefresh() {
-        synchronized(this) { refreshJob }?.join()
     }
 
     suspend fun checkInBackground(): UpdateCheckResult {
@@ -451,7 +459,7 @@ internal constructor(
             .also { packageRefreshJob = it }
     }
 
-    private suspend fun refreshMarket(force: Boolean): Boolean {
+    internal suspend fun refreshMarket(force: Boolean): Boolean {
         val requested =
             snapshot()
                 .filter {
@@ -486,7 +494,7 @@ internal constructor(
     }
 
     fun close() {
-        scope.cancel()
+        scope.cancelScope()
     }
 }
 
@@ -497,5 +505,5 @@ data class InstalledUpdateSources(
     val ruStore: RuStoreRepository,
 )
 
-private val InstalledApp.systemWithoutLauncher: Boolean
+internal val InstalledApp.systemWithoutLauncher: Boolean
     get() = local?.let { it.system && !it.launchable } == true

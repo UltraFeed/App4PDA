@@ -65,7 +65,7 @@ internal constructor(
         }
     }
 
-    suspend fun scan() =
+    suspend fun scan(): Unit =
         withContext(ioDispatcher) {
             scanMutex.withLock {
                 settings.awaitReady()

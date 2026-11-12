@@ -155,7 +155,7 @@ internal class ReadyDownloads {
         )
 }
 
-private fun readyFile(
+internal fun readyFile(
     packages: PackageInspector,
     file: File,
     record: DownloadRecord?,

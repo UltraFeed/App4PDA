@@ -4,18 +4,17 @@ import android.graphics.Color as GraphicsColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.dynamicColorScheme
+import io.github.ultrafeed.app4pda.core.ui.theme.usesDarkSystemIcons
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ScreenAppearanceTest {
     @Test
     fun systemIconContrastFollowsAdjacentThemeSurfaces() {
         for (dark in listOf(false, true)) {
-            val scheme = dynamicColorScheme(Color(0xff123456), dark, false)
+            val scheme = dynamicColorScheme(Color(0xff123456), isDark = dark, isAmoled = false)
             val actual = screenColors(scheme)
             assertThat(
                 actual.statusBar,
@@ -34,8 +33,8 @@ class ScreenAppearanceTest {
 
     @Test
     fun changingAccentChangesPaletteWithoutChangingThemeMode() {
-        val blue = dynamicColorScheme(Color.Blue, false, false)
-        val red = dynamicColorScheme(Color.Red, false, false)
+        val blue = dynamicColorScheme(Color.Blue, isDark = false, isAmoled = false)
+        val red = dynamicColorScheme(Color.Red, isDark = false, isAmoled = false)
         assertThat(
             red.primary,
             not(
@@ -44,21 +43,25 @@ class ScreenAppearanceTest {
                 ),
             ),
         )
-        assertTrue(screenColors(blue).darkStatusIcons)
-        assertTrue(screenColors(red).darkStatusIcons)
+        assertThat(screenColors(blue).darkStatusIcons, `is`(true))
+        assertThat(screenColors(red).darkStatusIcons, `is`(true))
     }
 
     @Test
     fun darkThemeUsesLightSystemIconsForAnyAccent() {
         for (accent in listOf(Color.White, Color.Black, Color.Red)) {
-            assertFalse(screenColors(dynamicColorScheme(accent, true, false)).darkStatusIcons)
+            assertThat(
+                screenColors(dynamicColorScheme(accent, isDark = true, isAmoled = false))
+                    .darkStatusIcons,
+                `is`(false),
+            )
         }
     }
 
     @Test
     fun iconContrastUsesStrictLuminanceThreshold() {
-        assertFalse(usesDarkSystemIcons(GraphicsColor.BLACK))
-        assertTrue(usesDarkSystemIcons(GraphicsColor.WHITE))
-        assertFalse(usesDarkSystemIcons(0xff777777.toInt()))
+        assertThat(usesDarkSystemIcons(GraphicsColor.BLACK), `is`(false))
+        assertThat(usesDarkSystemIcons(GraphicsColor.WHITE), `is`(true))
+        assertThat(usesDarkSystemIcons(0xff777777.toInt()), `is`(false))
     }
 }

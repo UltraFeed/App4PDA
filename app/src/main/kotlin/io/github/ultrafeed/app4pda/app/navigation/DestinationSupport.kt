@@ -14,7 +14,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.withResumed
 import io.github.ultrafeed.app4pda.R
 
 /** Effects resume on return, but retained ViewModels and their requests are not recreated. */
@@ -36,7 +35,11 @@ internal fun Activity.openExternal(intent: Intent) {
         val ownHandler =
             intent.action == Intent.ACTION_VIEW &&
                 intent.component == null &&
-                intent.resolveActivity(packageManager)?.packageName == packageName
+                intent
+                    .resolveActivity(
+                        packageManager,
+                    )
+                    ?.packageName == packageName
         if (ownHandler) {
             // An external link must not resolve back into MainActivity and enqueue itself again.
             val chooser = Intent.createChooser(intent, null)
@@ -50,22 +53,6 @@ internal fun Activity.openExternal(intent: Intent) {
 
 internal val LocalEntryActive = staticCompositionLocalOf { false }
 internal val LocalCanGoBack = staticCompositionLocalOf { false }
-
-/** Binding can finish under a dialog; only its resumed, visible caller may return. */
-@Composable
-internal fun BindingCompletedEffect(completed: Boolean, consume: () -> Unit, onBack: () -> Unit) {
-    val active = LocalEntryActive.current
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val latestConsume by rememberUpdatedState(consume)
-    val latestBack by rememberUpdatedState(onBack)
-    LaunchedEffect(completed, active, lifecycle) {
-        if (completed && active)
-            lifecycle.withResumed {
-                latestConsume()
-                latestBack()
-            }
-    }
-}
 
 /** A saved result is consumed only while its addressed receiver is resumed. */
 @Composable

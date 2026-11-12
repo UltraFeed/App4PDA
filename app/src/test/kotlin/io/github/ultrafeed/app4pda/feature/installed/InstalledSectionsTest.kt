@@ -1,8 +1,8 @@
 package io.github.ultrafeed.app4pda.feature.installed
 
 import io.github.ultrafeed.app4pda.core.packages.LocalPackage
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 class InstalledSectionsTest {
@@ -17,39 +17,45 @@ class InstalledSectionsTest {
 
     @Test
     fun completedUnlinkedApplicationsBelongToNotLinked() {
-        assertFalse(app(true).belongsTo(AppSection.APPLICATIONS))
-        assertTrue(app(true).belongsTo(AppSection.UNLINKED))
-        assertFalse(app(true).belongsTo(AppSection.PENDING_LINKING))
+        assertThat(app(true).belongsTo(AppSection.APPLICATIONS), `is`(false))
+        assertThat(app(true).belongsTo(AppSection.UNLINKED), `is`(true))
+        assertThat(app(true).belongsTo(AppSection.PENDING_LINKING), `is`(false))
         for (completed in listOf(false, true)) {
             val disabled = app(completed).with(preferences = AppPreferences(ignoreForum = true))
-            assertTrue(disabled.belongsTo(AppSection.APPLICATIONS))
-            assertFalse(disabled.belongsTo(AppSection.UNLINKED))
-            assertFalse(disabled.belongsTo(AppSection.PENDING_LINKING))
-            assertTrue(disabled.userChoicesEditable)
+            assertThat(disabled.belongsTo(AppSection.APPLICATIONS), `is`(true))
+            assertThat(disabled.belongsTo(AppSection.UNLINKED), `is`(false))
+            assertThat(disabled.belongsTo(AppSection.PENDING_LINKING), `is`(false))
+            assertThat(disabled.userChoicesEditable, `is`(true))
         }
     }
 
     @Test
     fun pendingApplicationsMoveToAppsOnlyAfterLinking() {
-        assertTrue(app(false).belongsTo(AppSection.PENDING_LINKING))
-        assertFalse(app(false).belongsTo(AppSection.UNLINKED))
-        assertFalse(app(false).belongsTo(AppSection.APPLICATIONS))
-        assertFalse(app(false).userChoicesEditable)
-        assertTrue(app(true).userChoicesEditable)
+        assertThat(app(false).belongsTo(AppSection.PENDING_LINKING), `is`(true))
+        assertThat(app(false).belongsTo(AppSection.UNLINKED), `is`(false))
+        assertThat(app(false).belongsTo(AppSection.APPLICATIONS), `is`(false))
+        assertThat(app(false).userChoicesEditable, `is`(false))
+        assertThat(app(true).userChoicesEditable, `is`(true))
         for (completed in listOf(false, true)) {
-            assertTrue(app(completed, topic = 1).belongsTo(AppSection.APPLICATIONS))
-            assertFalse(app(completed, topic = 1).belongsTo(AppSection.UNLINKED))
-            assertFalse(app(completed, topic = 1).belongsTo(AppSection.PENDING_LINKING))
+            assertThat(app(completed, topic = 1).belongsTo(AppSection.APPLICATIONS), `is`(true))
+            assertThat(app(completed, topic = 1).belongsTo(AppSection.UNLINKED), `is`(false))
+            assertThat(app(completed, topic = 1).belongsTo(AppSection.PENDING_LINKING), `is`(false))
         }
     }
 
     @Test
     fun hiddenApplicationsNeverEnterEitherVisibleSection() {
         listOf(false, true).forEach { completed ->
-            assertFalse(app(completed, hidden = true).userChoicesEditable)
-            assertFalse(app(completed, hidden = true).belongsTo(AppSection.APPLICATIONS))
-            assertFalse(app(completed, hidden = true).belongsTo(AppSection.UNLINKED))
-            assertFalse(app(completed, hidden = true).belongsTo(AppSection.PENDING_LINKING))
+            assertThat(app(completed, hidden = true).userChoicesEditable, `is`(false))
+            assertThat(
+                app(completed, hidden = true).belongsTo(AppSection.APPLICATIONS),
+                `is`(false),
+            )
+            assertThat(app(completed, hidden = true).belongsTo(AppSection.UNLINKED), `is`(false))
+            assertThat(
+                app(completed, hidden = true).belongsTo(AppSection.PENDING_LINKING),
+                `is`(false),
+            )
         }
     }
 }

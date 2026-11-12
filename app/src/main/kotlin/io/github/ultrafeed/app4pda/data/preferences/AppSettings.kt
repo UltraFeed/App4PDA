@@ -18,16 +18,18 @@ import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancel as cancelScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.isActive as isScopeActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -46,13 +48,14 @@ class AppSettings(
     internal val store: DataStore<Preferences>,
     private val scope: CoroutineScope,
 ) : Closeable {
-    val accounts = ForumAccountStore(this)
+    val accounts: ForumAccountStore = ForumAccountStore(this)
 
     private var readJob: Job? = null
     private val writes = Mutex()
     private val mutableState = MutableStateFlow<SettingsLoad>(SettingsLoad.Loading)
-    val state = mutableState.asStateFlow()
-    val changes = state.filterIsInstance<SettingsLoad.Ready>().map { it.settings }
+    val state: StateFlow<SettingsLoad> = mutableState.asStateFlow()
+    val changes: Flow<SettingsValues> =
+        state.filterIsInstance<SettingsLoad.Ready>().map { it.settings }
     val current: SettingsValues
         get() = (state.value as? SettingsLoad.Ready)?.settings ?: error("Settings are not ready")
 
@@ -63,23 +66,23 @@ class AppSettings(
     @Synchronized
     fun retry() {
         val reading = state.value is SettingsLoad.Loading && readJob?.isActive == true
-        if (!scope.isActive || state.value is SettingsLoad.Ready || reading) return
+        if (!scope.isScopeActive || state.value is SettingsLoad.Ready || reading) return
         readJob?.cancel()
         mutableState.value = SettingsLoad.Loading
         readJob = scope.launch {
             try {
                 store.data.collect { stored ->
                     val decoded = decode(stored)
-                    mutableState.update { it.withValues(decoded, scope.isActive) }
+                    mutableState.update { it.withValues(decoded, scope.isScopeActive) }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: IOException) {
-                mutableState.update { if (scope.isActive) SettingsLoad.Failed(error) else it }
+                mutableState.update { if (scope.isScopeActive) SettingsLoad.Failed(error) else it }
             } catch (error: IllegalStateException) {
-                mutableState.update { if (scope.isActive) SettingsLoad.Failed(error) else it }
+                mutableState.update { if (scope.isScopeActive) SettingsLoad.Failed(error) else it }
             } catch (error: IllegalArgumentException) {
-                mutableState.update { if (scope.isActive) SettingsLoad.Failed(error) else it }
+                mutableState.update { if (scope.isScopeActive) SettingsLoad.Failed(error) else it }
             }
         }
     }
@@ -159,14 +162,9 @@ class AppSettings(
             }
         }
 
-    suspend fun setParsingRule(name: String, value: String) =
-        writeValue("settings_parse_" + name, value)
-
-    suspend fun setDownloadsOpenMode(value: String) = writeValue("open_downloads", value)
-
     @Synchronized
     override fun close() {
-        scope.cancel()
+        scope.cancelScope()
         mutableState.value = SettingsLoad.Failed(CancellationException("Settings closed"))
     }
 }
@@ -182,6 +180,6 @@ internal fun createSettingsDataStore(
     )
 }
 
-private fun SettingsLoad.withValues(decoded: SettingsValues, running: Boolean): SettingsLoad =
+internal fun SettingsLoad.withValues(decoded: SettingsValues, running: Boolean): SettingsLoad =
     if (!running || (this is SettingsLoad.Ready && settings.values == decoded.values)) this
     else SettingsLoad.Ready(decoded)

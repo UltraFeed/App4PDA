@@ -4,7 +4,6 @@ import io.github.ultrafeed.app4pda.data.forum.ForumSearchSort
 import io.github.ultrafeed.app4pda.data.forum.ForumTopicSearch
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert
 import org.junit.Test
 
 class CatalogSortTest {
@@ -78,8 +77,8 @@ class CatalogSortTest {
         )
         CatalogSort.entries.forEach { order ->
             val url = ForumTopicSearch.url("Авито", order.forumSort)
-            Assert.assertTrue(url.contains("query=%C0%E2%E8%F2%EE&"))
-            Assert.assertTrue(url.contains("sort=${order.forumSort.parameter}"))
+            assertThat(url.contains("query=%C0%E2%E8%F2%EE&"), `is`(true))
+            assertThat(url.contains("sort=${order.forumSort.parameter}"), `is`(true))
         }
     }
 }

@@ -24,6 +24,11 @@ internal class SourceImageCachePolicy(private val enabled: suspend () -> Boolean
         options: Options,
     ): CacheStrategy.WriteResult =
         if (enabled())
-            CacheStrategy.DEFAULT.write(cacheResponse, networkRequest, networkResponse, options)
+            CacheStrategy.DEFAULT.write(
+                cacheResponse,
+                networkRequest,
+                networkResponse,
+                options,
+            )
         else CacheStrategy.WriteResult.DISABLED
 }

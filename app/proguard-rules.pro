@@ -19,5 +19,3 @@
 # Retrofit 2.9 keeps its service interfaces and Signature/annotation attributes, but
 # full-mode R8 also needs these generic types retained for Ketch's suspend HEAD/GET API.
 -keep,allowoptimization,allowshrinking interface kotlin.coroutines.Continuation
--keep,allowoptimization,allowshrinking class retrofit2.Response
-

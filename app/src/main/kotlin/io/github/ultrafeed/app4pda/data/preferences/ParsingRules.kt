@@ -38,7 +38,7 @@ internal constructor(
             "login_form_captcha_sig" to "name=\"captcha-sig\"[^>]*?value=\"([^\"]*)\"",
             "login_form_errors" to "<ul class=\"errors-list\">([\\s\\S]*?)</ul>",
             "forum_date_format" to "dd.MM.yy, HH:mm",
-            "post_id_from_url" to $$"^.+?#entry(\\d+?)$",
+            "post_id_from_url" to "^.+?#entry(\\d+?)$",
             "forum_url_find_post" to
                 "https://" + ForumUrls.HOST + "/forum/index.php?act=findpost&pid=%post_id%",
             "forum_url_show_topic" to
@@ -59,7 +59,7 @@ internal constructor(
     ): String {
         if (name == "forum_domain") return ForumUrls.HOST
         val value =
-            (overrides["settings_parse_" + name] as? String) ?: defaultParsingRules[name].orEmpty()
+            (overrides["settings_parse_$name"] as? String) ?: defaultParsingRules[name].orEmpty()
         // Rules can contain literal or regex-escaped hosts. Adapt on read, never migrate storage.
         val current =
             ForumUrls.normalizeRule(

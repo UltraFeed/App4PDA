@@ -71,7 +71,10 @@ internal fun StoreDocument(
         }
         file?.let { StoreFileCard(it, busy, onFile) }
         if (section.document.isBlank())
-            Text(stringResource(R.string.no_description), Modifier.padding(AppLayout.content))
+            Text(
+                stringResource(R.string.no_description),
+                Modifier.padding(AppLayout.content),
+            )
         else DocumentContent(section.document, origin, fitContent = true, onLink = onLink)
     }
 }

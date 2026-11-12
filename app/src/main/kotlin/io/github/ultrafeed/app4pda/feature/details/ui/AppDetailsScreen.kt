@@ -114,8 +114,7 @@ fun AppDetailsScreen(
                         }
                     }
                 if (tabs.isEmpty()) EmptyDetailsState(state, onRefresh)
-            } else if (!state.loading && !state.error)
-                TextButton(onClick = onRefresh) { Text(stringResource(R.string.action_retry)) }
+            } else if (!state.loading && !state.error) DetailsRetryButton(onRefresh)
         }
     }
     data
@@ -124,6 +123,13 @@ fun AppDetailsScreen(
         ?.let {
             DetailsDownloadDialog(it, data, state.actionBusy, { fileId = null }, onDownload)
         }
+}
+
+@Composable
+private fun DetailsRetryButton(onRefresh: () -> Unit) {
+    TextButton(onClick = onRefresh) {
+        Text(stringResource(R.string.action_retry))
+    }
 }
 
 @Composable
@@ -318,14 +324,10 @@ private fun DetailsPage(
         )
     } else
         DetailsDocument(
-            when (tab) {
-                DetailsTab.GOOGLE_PLAY -> data.market
-                DetailsTab.RUSTORE -> data.ruStore
-                else -> data.forum
-            },
+            data.forum,
             origin,
             onRefresh,
-            if (tab == DetailsTab.FORUM) ({ onAction(DetailsAction.FORUM) }) else null,
+            { onAction(DetailsAction.FORUM) },
             { images, index -> onImages(origin, images, index) },
             { onLink(it, origin) },
             Modifier.fillMaxSize(),

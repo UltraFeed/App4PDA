@@ -3,15 +3,14 @@ package io.github.ultrafeed.app4pda.data.forum
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 object ForumUrls {
-    const val HOST = "4pda.to"
-    const val BASE = "https://$HOST/forum/"
-    const val INDEX = "${BASE}index.php"
+    const val HOST: String = "4pda.to"
+    const val BASE: String = "https://$HOST/forum/"
+    const val INDEX: String = "${BASE}index.php"
 
-    fun topic(topicId: Int) = "$INDEX?showtopic=$topicId"
+    fun topic(topicId: Int): String = "$INDEX?showtopic=$topicId"
 
-    fun post(topicId: Int, postId: Int) = "$INDEX?showtopic=$topicId&view=findpost&p=$postId"
-
-    fun profile(userId: Int) = "$INDEX?showuser=$userId"
+    fun post(topicId: Int, postId: Int): String =
+        "$INDEX?showtopic=$topicId&view=findpost&p=$postId"
 
     fun normalize(value: String): String {
         val protocolRelative = value.startsWith("//")
@@ -33,7 +32,13 @@ object ForumUrls {
     fun normalizeHtml(html: String): String = URL_TOKEN.replace(html) { normalize(it.value) }
 
     fun normalizeRule(value: String): String {
-        if (value.startsWith("http://", true) || value.startsWith("https://", true))
+        if (
+            value.startsWith("http://", true) ||
+                value.startsWith(
+                    "https://",
+                    true,
+                )
+        )
             return normalize(value)
         var result = value
         for (host in listOf("4pda.ru", "4pda\\.ru")) {

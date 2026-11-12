@@ -46,9 +46,7 @@ jobs:
           build-mode: manual
 
       - name: Test, lint, Detekt, Spotless, debug APK
-        run: >-
-          ./gradlew :app:testDebugUnitTest :app:lintDebug :app:detektDebug
-          spotlessCheck :app:assembleDebug --continue --no-build-cache --no-configuration-cache
+        run: ./gradlew verifyDebug --continue --no-build-cache --no-configuration-cache
 
       - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         if: ${{ success() && (github.event_name == 'push' || github.event_name == 'pull_request') }}

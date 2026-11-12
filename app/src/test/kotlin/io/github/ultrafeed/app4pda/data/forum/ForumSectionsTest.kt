@@ -2,25 +2,24 @@ package io.github.ultrafeed.app4pda.data.forum
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ForumSectionsTest {
     @Test
     fun scopeContainsOnlyTheSelectedBranch() {
-        MatcherAssert.assertThat(
+        assertThat(
             ForumSections.scope(316),
-            CoreMatchers.`is`(
+            `is`(
                 setOf(
                     316,
                 ),
             ),
         )
         val programs = ForumSections.scope(212)
-        assertTrue(programs.containsAll(setOf(212, 316, 558, 1109)))
-        MatcherAssert.assertThat(
+        assertThat(programs.containsAll(setOf(212, 316, 558, 1109)), `is`(true))
+        assertThat(
             programs,
             CoreMatchers.not(
                 CoreMatchers.hasItem(
@@ -28,7 +27,7 @@ class ForumSectionsTest {
                 ),
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             programs,
             CoreMatchers.not(
                 CoreMatchers.hasItem(
@@ -36,8 +35,8 @@ class ForumSectionsTest {
                 ),
             ),
         )
-        assertTrue(ForumSections.scope(213).containsAll(setOf(1164, 1149)))
-        MatcherAssert.assertThat(
+        assertThat(ForumSections.scope(213).containsAll(setOf(1164, 1149)), `is`(true))
+        assertThat(
             ForumSections.ids,
             CoreMatchers.not(
                 CoreMatchers.hasItem(
@@ -45,9 +44,9 @@ class ForumSectionsTest {
                 ),
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             ForumSections.scope(529),
-            CoreMatchers.`is`(
+            `is`(
                 setOf(
                     529,
                     539,
@@ -60,25 +59,25 @@ class ForumSectionsTest {
     @Test
     fun requestsDeclareExactScopeWithoutImplicitDescendants() {
         val url = ForumTopicSearch.url("Авито", ForumSearchSort.RELEVANCE, 316).toHttpUrl()
-        MatcherAssert.assertThat(
+        assertThat(
             url.queryParameter("forums"),
-            CoreMatchers.`is`(
+            `is`(
                 "316",
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             url.queryParameter("subforums"),
-            CoreMatchers.`is`(
+            `is`(
                 "0",
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             url.queryParameter("forums[]"),
             CoreMatchers.nullValue(),
         )
-        MatcherAssert.assertThat(
-            ForumTopicSearch.query(url.toString()),
-            CoreMatchers.`is`(
+        assertThat(
+            ForumTopicSearch.query("$url"),
+            `is`(
                 "Авито",
             ),
         )

@@ -5,12 +5,12 @@ config:
 # Compose UI functions follow the framework's PascalCase naming convention.
 naming:
   FunctionNaming:
-    ignoreAnnotated: ['Composable']
+    ignoreAnnotated: [ 'Composable' ]
 
 complexity:
   LongParameterList:
     ignoreDefaultParameters: true
-    ignoreAnnotated: ['Composable']
+    ignoreAnnotated: [ 'Composable' ]
 
 # ktfmt may retain unbreakable strings and comments beyond its preferred width.
 # Other compatible default style checks remain enabled, including modifier order

@@ -92,7 +92,7 @@ private constructor(
     }
 
     companion object {
-        const val MANIFEST = "play-delivery.json"
+        const val MANIFEST: String = "play-delivery.json"
 
         fun read(directory: File): PlayDownloadGroup? {
             val manifest = File(directory, MANIFEST)

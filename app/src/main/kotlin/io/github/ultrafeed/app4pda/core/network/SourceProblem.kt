@@ -16,7 +16,11 @@ interface HttpStatusFailure {
 }
 
 class SourceHttpException(val status: Int) : IOException("HTTP $status"), HttpStatusFailure {
-    override val httpStatus
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override val httpStatus: Int
         get() = status
 }
 
@@ -48,7 +52,11 @@ data class SourceProblem(
                             )
 
                     http != null ->
-                        "HTTP_$http" to context.getString(R.string.source_problem_http, http)
+                        "HTTP_$http" to
+                            context.getString(
+                                R.string.source_problem_http,
+                                http,
+                            )
 
                     causes.any { it is SSLException } ->
                         "TLS_CERTIFICATE" to context.getString(R.string.source_problem_tls)
@@ -57,14 +65,20 @@ data class SourceProblem(
                         "TIMEOUT" to context.getString(R.string.forum_update_timeout)
 
                     failure is ForumApiException && failure.reason != ForumFailure.NETWORK ->
-                        failure.reason.name to context.getString(forumMessage(failure.reason))
+                        failure.reason.name to
+                            context.getString(
+                                forumMessage(failure.reason),
+                            )
 
                     causes.any {
                         it is UnknownHostException || it is ConnectException || it is IOException
                     } -> "NETWORK" to context.getString(R.string.source_problem_network)
 
                     failure is IllegalArgumentException || failure is IllegalStateException ->
-                        "INVALID_RESPONSE" to context.getString(R.string.source_problem_invalid)
+                        "INVALID_RESPONSE" to
+                            context.getString(
+                                R.string.source_problem_invalid,
+                            )
 
                     else -> "UNEXPECTED" to context.getString(R.string.source_problem_unknown)
                 }
@@ -74,7 +88,11 @@ data class SourceProblem(
 }
 
 class SourceRateLimited(val retryAt: Long) : IOException("HTTP 429"), HttpStatusFailure {
-    override val httpStatus = 429
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override val httpStatus: Int = 429
 }
 
 private fun forumMessage(reason: ForumFailure): Int =
@@ -98,12 +116,14 @@ private fun forumPause(context: Context, causes: List<Throwable>): Pair<String, 
                         DisplayFormats.dateTime(it, "dd.MM.yyyy, HH:mm:ss"),
                     )
                 } ?: context.getString(R.string.forum_verification_required))
+
         retryAt != null ->
             "FORUM_PAUSED" to
                 context.getString(
                     R.string.source_problem_retry_at,
                     DisplayFormats.dateTime(retryAt, "dd.MM.yyyy, HH:mm:ss"),
                 )
+
         else -> null
     }
 }

@@ -7,7 +7,6 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MotionScheme
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation3.runtime.NavKey
@@ -17,7 +16,6 @@ import io.github.ultrafeed.app4pda.app.navigation.MainSectionMetadata
 import io.github.ultrafeed.app4pda.app.navigation.mainNavigationForward
 
 /** NavDisplay owns the transition; the same Material motion tokens apply to every stack. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 internal class NavigationMotion(private val enabled: Boolean, private val scheme: MotionScheme) {
     fun sceneTransform(
         scope: AnimatedContentTransitionScope<Scene<NavKey>>,
@@ -42,8 +40,14 @@ internal class NavigationMotion(private val enabled: Boolean, private val scheme
                     else AnimatedContentTransitionScope.SlideDirection.End
                 val spatial = scheme.defaultSpatialSpec<IntOffset>()
                 val effects = scheme.defaultEffectsSpec<Float>()
-                (slideIntoContainer(direction, spatial) + fadeIn(effects)) togetherWith
-                    (slideOutOfContainer(direction, spatial) + fadeOut(effects))
+                (slideIntoContainer(
+                    direction,
+                    spatial,
+                ) + fadeIn(effects)) togetherWith
+                    (slideOutOfContainer(
+                        direction,
+                        spatial,
+                    ) + fadeOut(effects))
             }
         }
 }

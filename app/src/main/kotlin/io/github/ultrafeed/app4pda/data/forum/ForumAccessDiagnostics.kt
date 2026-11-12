@@ -18,7 +18,9 @@ internal fun forumHttpEvent(
     if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return
     Log.d(
         "ForumAccess",
-        "http original=${diagnosticUrl(original)} url=${diagnosticUrl(response.url.toString())} status=${response.code} session=$session elapsed=${SystemClock.elapsedRealtime()} location=${response.headers["Location"]?.let(::diagnosticUrl).orEmpty()}",
+        "http original=${diagnosticUrl(original)} url=${diagnosticUrl(response.url.toString())} status=${response.code} session=$session elapsed=${SystemClock.elapsedRealtime()} location=${
+            response.headers["Location"]?.let(::diagnosticUrl).orEmpty()
+        }",
     )
 }
 
@@ -60,6 +62,8 @@ internal fun forumAccessEvent(
         }
     Log.d(
         "ForumAccess",
-        "$event host=${uri?.host.orEmpty()} route=$route topic=${uri?.getQueryParameter("showtopic").orEmpty()} code=${code ?: 0}",
+        "$event host=${uri?.host.orEmpty()} route=$route topic=${
+            uri?.getQueryParameter("showtopic").orEmpty()
+        } code=${code ?: 0}",
     )
 }

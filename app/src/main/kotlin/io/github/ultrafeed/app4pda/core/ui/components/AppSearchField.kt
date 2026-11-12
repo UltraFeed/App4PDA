@@ -63,6 +63,7 @@ fun AppSearchField(
             onSearch(query)
         }
     }
+
     val input: @Composable () -> Unit = {
         SearchInput(text, state, placeholder, ::submit)
     }
@@ -71,7 +72,6 @@ fun AppSearchField(
     ExpandedFullScreenSearchBar(state = state, inputField = input) {}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchInput(
     text: TextFieldState,

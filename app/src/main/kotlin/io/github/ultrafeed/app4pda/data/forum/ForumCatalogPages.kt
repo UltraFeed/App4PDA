@@ -24,10 +24,10 @@ class ForumCatalogPageSource(
     private val api: ForumApiClient,
     private val cache: ForumCatalogCache,
 ) : ForumCatalogPages {
-    override suspend fun load(request: ForumCatalogRequest, nextUrl: String?) =
+    override suspend fun load(request: ForumCatalogRequest, nextUrl: String?): ForumListingPage =
         loadPage(request, nextUrl, true)
 
-    override suspend fun refresh(request: ForumCatalogRequest, nextUrl: String?) =
+    override suspend fun refresh(request: ForumCatalogRequest, nextUrl: String?): ForumListingPage =
         loadPage(request, nextUrl, false)
 
     private suspend fun loadPage(
@@ -40,10 +40,10 @@ class ForumCatalogPageSource(
         return cache.save(key(request, nextUrl), result, revision)
     }
 
-    override suspend fun cached(request: ForumCatalogRequest, nextUrl: String?) =
+    override suspend fun cached(request: ForumCatalogRequest, nextUrl: String?): ForumListingPage? =
         cache.read(key(request, nextUrl))
 
-    override suspend fun removeTopic(topic: Int) = cache.removeTopic(topic)
+    override suspend fun removeTopic(topic: Int): Unit = cache.removeTopic(topic)
 
     private fun key(request: ForumCatalogRequest, nextUrl: String?): String =
         Json.encodeToString(
@@ -76,6 +76,7 @@ class ForumCatalogPageSource(
                     )
                 ForumListingPage(emptyList(), result.topics, result.nextUrl)
             }
+
             else -> listing(definition, nextUrl, userInitiated)
         }
     }

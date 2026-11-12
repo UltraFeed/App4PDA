@@ -23,23 +23,28 @@ internal class PlayHttpClient : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val deadline = retryAt.get()
-        if (System.currentTimeMillis() < deadline) throw PlaySourceException.RateLimited(deadline)
+        if (System.currentTimeMillis() < deadline) throw PlaySourceException.RateLimited()
 
         val request = chain.request()
         val response = chain.proceed(request)
         Log.d(
             "GooglePlay",
-            "HTTP ${request.method} ${request.url.encodedPath} status=${response.code} language=${request.header("Accept-Language")}",
+            "HTTP ${request.method} ${request.url.encodedPath} status=${response.code} language=${
+                request.header("Accept-Language")
+            }",
         )
         if (response.code == HttpStatusCode.TooManyRequests.value) {
             val now = System.currentTimeMillis()
             val delay =
-                retryAfterMillis(response.header("Retry-After"), now)
+                retryAfterMillis(
+                        response.header("Retry-After"),
+                        now,
+                    )
                     ?.coerceAtMost(AppPolicy.PLAY_RETRY_MAX_MILLIS)
                     ?: AppPolicy.PLAY_RETRY_DEFAULT_MILLIS
             retryAt.accumulateAndGet(now + delay, ::maxOf)
             response.close()
-            throw PlaySourceException.RateLimited(retryAt.get())
+            throw PlaySourceException.RateLimited()
         }
         return response
     }

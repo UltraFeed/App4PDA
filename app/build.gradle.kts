@@ -7,8 +7,8 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-val javaTarget = libs.versions.jdk.get()
-val releaseKeystore = providers.environmentVariable("RELEASE_KEYSTORE_PATH").orNull
+val javaTarget: String = libs.versions.jdk.get()
+val releaseKeystore: String? = providers.environmentVariable("RELEASE_KEYSTORE_PATH").orNull
 
 android {
     namespace = "io.github.ultrafeed.app4pda"

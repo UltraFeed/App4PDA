@@ -27,7 +27,12 @@ private const val ACTION_PREFERENCES = "android.intent.action.PREFERENCES"
 internal fun classifyIntent(input: Intent): IncomingCommand =
     when {
         input.getBooleanExtra("open_updates", false) ->
-            IncomingCommand.Navigate(AppDestination.Apps(AppSection.UPDATES))
+            IncomingCommand.Navigate(
+                AppDestination.Apps(
+                    AppSection.UPDATES,
+                ),
+            )
+
         input.action == ACTION_PREFERENCES ->
             IncomingCommand.Navigate(
                 AppDestination.Settings(
@@ -36,6 +41,7 @@ internal fun classifyIntent(input: Intent): IncomingCommand =
                     } ?: SettingsPage.ROOT,
                 ),
             )
+
         else -> classifyContent(input)
     }
 
@@ -54,6 +60,7 @@ private fun classifyContent(input: Intent): IncomingCommand {
             IncomingCommand.Navigate(
                 AppDestination.Details(0, store.packageName, initialSource = store.source),
             )
+
         input.action == Intent.ACTION_SEND -> IncomingCommand.Navigate(AppDestination.Lookup(null))
         input.action == Intent.ACTION_SEARCH ->
             IncomingCommand.Navigate(
@@ -62,6 +69,7 @@ private fun classifyContent(input: Intent): IncomingCommand {
                     linked = input.getBundleExtra("app_data")?.getString("linked_package"),
                 ),
             )
+
         input.action == Intent.ACTION_VIEW -> IncomingCommand.None
         input.action == ACTION_DOWNLOAD_OPEN -> IncomingCommand.Downloads
         else -> IncomingCommand.None

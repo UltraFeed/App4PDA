@@ -4,8 +4,6 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
-import java.util.concurrent.TimeUnit
 
 object ForumDates {
     fun parseCompactDate(value: Int): Long =
@@ -47,13 +45,4 @@ object ForumDates {
             }
         } ?: Date(0)
     }
-
-    /** The forum protocol uses the inverse local offset, including daylight saving. */
-    fun utcOffsetMillis(
-        atMillis: Long = System.currentTimeMillis(),
-        timeZone: TimeZone = TimeZone.getDefault(),
-    ): Int = -timeZone.getOffset(atMillis)
-
-    fun utcOffsetMinutes(): Int =
-        TimeUnit.MILLISECONDS.toMinutes(utcOffsetMillis().toLong()).toInt()
 }

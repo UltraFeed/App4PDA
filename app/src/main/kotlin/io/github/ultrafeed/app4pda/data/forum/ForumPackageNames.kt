@@ -1,7 +1,6 @@
 package io.github.ultrafeed.app4pda.data.forum
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
 /** Package evidence in message links and labelled text, not in surrounding replies. */
@@ -13,9 +12,6 @@ object ForumPackageNames {
             "(?:Имя\\s+пакета|Название\\s+пакета|package\\s*name|Пакет|ID\\s+приложения)\\s*[:：]?\\s*($PACKAGE)",
             RegexOption.IGNORE_CASE,
         )
-
-    fun extract(firstPostHtml: String): List<String> =
-        extract(Jsoup.parseBodyFragment(firstPostHtml, ForumUrls.BASE).body())
 
     internal fun extract(post: Element?): List<String> {
         if (post == null) return emptyList()
@@ -34,16 +30,23 @@ object ForumPackageNames {
         return when {
             address.startsWith("market://details?") ->
                 address
-                    .replaceFirst("market://", "https://market.android.com/")
+                    .replaceFirst(
+                        "market://",
+                        "https://market.android.com/",
+                    )
                     .toHttpUrlOrNull()
                     ?.queryParameter("id")
 
             url == null -> null
             url.host == "play.google.com" && url.encodedPath == "/store/apps/details" ->
-                url.queryParameter("id")
+                url.queryParameter(
+                    "id",
+                )
 
             url.host == "market.android.com" && url.encodedPath == "/details" ->
-                url.queryParameter("id")
+                url.queryParameter(
+                    "id",
+                )
 
             url.host == "f-droid.org" ->
                 url.pathSegments.let { parts ->

@@ -45,14 +45,13 @@ internal fun DetailsDestination(
     val language = LocalConfiguration.current.locales.toLanguageTags()
     val args = entry.destination as AppDestination.Details
     val downloadsController: DownloadController = koinInject()
-    val model: AppDetailsViewModel =
-        koinViewModel() {
-            parametersOf(
-                args.topic,
-                args.packageName.orEmpty(),
-                args.initialSource ?: DetailsTab.FORUM,
-            )
-        }
+    val model: AppDetailsViewModel = koinViewModel {
+        parametersOf(
+            args.topic,
+            args.packageName.orEmpty(),
+            args.initialSource ?: DetailsTab.FORUM,
+        )
+    }
     val ui by model.state.collectAsStateWithLifecycle()
     LaunchedEffect(model, language, active) {
         if (active) model.refreshPlayLanguage()
@@ -123,7 +122,12 @@ private fun rememberDetailsActions(
                     try {
                         val query = packages.bindingSearchName(linkedPackage, data?.title.orEmpty())
                         if (active)
-                            onOpen(AppDestination.Catalog(filter = query, linked = linkedPackage))
+                            onOpen(
+                                AppDestination.Catalog(
+                                    filter = query,
+                                    linked = linkedPackage,
+                                ),
+                            )
                     } finally {
                         searching = false
                     }
@@ -156,7 +160,13 @@ private fun AppDestination.Details.openDetailsLink(
         is ForumPostLink.Topic -> onOpen(AppDestination.Details(link.topicId, null))
         is ForumPostLink.Image -> onOpen(AppDestination.Gallery(listOf(link.url), origin))
         is ForumPostLink.External ->
-            activity.openExternal(Intent(Intent.ACTION_VIEW, link.url.toUri()))
+            activity.openExternal(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    link.url.toUri(),
+                ),
+            )
+
         null -> Unit
     }
 }

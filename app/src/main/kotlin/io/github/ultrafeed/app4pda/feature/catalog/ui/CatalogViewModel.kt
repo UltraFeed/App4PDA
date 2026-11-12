@@ -26,8 +26,8 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class CatalogViewModel(
@@ -61,7 +61,7 @@ class CatalogViewModel(
                     )
                 },
         )
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<CatalogUiState> = mutableState.asStateFlow()
 
     private val queryScope =
         CoroutineScope(

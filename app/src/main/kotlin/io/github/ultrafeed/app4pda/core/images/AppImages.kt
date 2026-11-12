@@ -12,7 +12,6 @@ import coil3.fetch.ImageFetchResult
 import coil3.fetch.SourceFetchResult
 import coil3.gif.AnimatedImageDecoder
 import coil3.gif.GifDecoder
-import coil3.intercept.Interceptor
 import coil3.key.Keyer
 import coil3.memory.MemoryCache
 import coil3.network.DeDupeConcurrentRequestStrategy
@@ -35,7 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancel as cancelScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -56,6 +55,7 @@ class AppImages(
 ) : AutoCloseable {
     private val caches =
         ImageOrigin.entries.associateWith { SourceImageCache(context, it, ioDispatcher) }
+
     @OptIn(ExperimentalCoilApi::class)
     private val network =
         ImageOrigin.entries.associateWith { origin ->
@@ -77,45 +77,43 @@ class AppImages(
             .memoryCache { MemoryCache.Builder().maxSizePercent(context).build() }
             .diskCache(null)
             .components {
-                add(
-                    Interceptor { chain ->
-                        val revision = generation.get()
-                        val remote = chain.request.data as? AppImageSource.Url
-                        val configuration = remote?.let {
-                            settings.awaitReady().imageCache(it.origin)
-                        }
-                        if (remote != null && configuration?.enabled == true) {
-                            caches
-                                .getValue(remote.origin)
-                                .acquire { settings.awaitReady().imageCache(remote.origin) }
-                                .use { lease ->
-                                    if (lease?.expired == true)
-                                        loader.memoryCache?.let { memory ->
-                                            memory.keys
-                                                .filter { it.key.startsWith("${remote.origin}:") }
-                                                .forEach(memory::remove)
-                                        }
-                                }
-                        }
-                        val request =
-                            if (configuration?.enabled == false)
-                                chain.request
-                                    .newBuilder()
-                                    .memoryCachePolicy(CachePolicy.DISABLED)
-                                    .build()
-                            else chain.request
-                        val result = chain.withRequest(request).proceed()
-                        if (
-                            remote != null &&
-                                (revision != generation.get() ||
-                                    !settings.awaitReady().imageCache(remote.origin).enabled)
-                        )
-                            (result as? SuccessResult)?.memoryCacheKey?.let {
-                                loader.memoryCache?.remove(it)
+                add { chain ->
+                    val revision = generation.get()
+                    val remote = chain.request.data as? AppImageSource.Url
+                    val configuration = remote?.let {
+                        settings.awaitReady().imageCache(it.origin)
+                    }
+                    if (remote != null && configuration?.enabled == true) {
+                        caches
+                            .getValue(remote.origin)
+                            .acquire { settings.awaitReady().imageCache(remote.origin) }
+                            .use { lease ->
+                                if (lease?.expired == true)
+                                    loader.memoryCache?.let { memory ->
+                                        memory.keys
+                                            .filter { it.key.startsWith("${remote.origin}:") }
+                                            .forEach(memory::remove)
+                                    }
                             }
-                        result
-                    },
-                )
+                    }
+                    val request =
+                        if (configuration?.enabled == false)
+                            chain.request
+                                .newBuilder()
+                                .memoryCachePolicy(CachePolicy.DISABLED)
+                                .build()
+                        else chain.request
+                    val result = chain.withRequest(request).proceed()
+                    if (
+                        remote != null &&
+                            (revision != generation.get() ||
+                                !settings.awaitReady().imageCache(remote.origin).enabled)
+                    )
+                        (result as? SuccessResult)?.memoryCacheKey?.let {
+                            loader.memoryCache?.remove(it)
+                        }
+                    result
+                }
                 add(
                     Fetcher.Factory<AppImageSource.Url> { source, options, _ ->
                         Fetcher { fetch(source, options) }
@@ -209,10 +207,8 @@ class AppImages(
         } finally {
             requests.remove(owner)
             if (!transferred) {
-                try {
+                lease.use {
                     fetched?.close()
-                } finally {
-                    lease.close()
                 }
             }
         }
@@ -244,14 +240,14 @@ class AppImages(
     override fun close() {
         if (!closed) {
             closed = true
-            scope.cancel()
+            scope.cancelScope()
             if (imageLoader.isInitialized()) imageLoader.value.shutdown()
             caches.values.forEach(SourceImageCache::close)
         }
     }
 }
 
-private fun imageHttpClient(context: Context, client: OkHttpClient): OkHttpClient {
+internal fun imageHttpClient(context: Context, client: OkHttpClient): OkHttpClient {
     return client
         .newBuilder()
         .addNetworkInterceptor { chain ->
@@ -279,48 +275,44 @@ private fun imageHttpClient(context: Context, client: OkHttpClient): OkHttpClien
         .build()
 }
 
-private fun localIconFetcher(
+internal fun localIconFetcher(
     packages: PackageInspector,
     ioDispatcher: CoroutineDispatcher,
-): Fetcher.Factory<AppImageSource> =
-    Fetcher.Factory<AppImageSource> { source, _, _ ->
-        if (source !is AppImageSource.PackageIcon && source !is AppImageSource.ApkIcon) null
-        else
-            Fetcher {
-                val inspector = packages
-                val drawable =
-                    withContext(ioDispatcher) {
-                        when (source) {
-                            is AppImageSource.PackageIcon ->
-                                inspector.artifacts.loadPackageIcon(source.packageName)
+): Fetcher.Factory<AppImageSource> = Fetcher.Factory { source, _, _ ->
+    if (source !is AppImageSource.PackageIcon && source !is AppImageSource.ApkIcon) null
+    else
+        Fetcher {
+            val drawable =
+                withContext(ioDispatcher) {
+                    when (source) {
+                        is AppImageSource.PackageIcon ->
+                            packages.artifacts.loadPackageIcon(source.packageName)
 
-                            is AppImageSource.ApkIcon ->
-                                inspector.artifacts.readApk(source.path, 0)?.let { info ->
-                                    info.applicationInfo?.apply {
-                                        sourceDir = source.path
-                                        publicSourceDir = source.path
-                                    }
-                                    inspector.artifacts.loadApplicationIcon(info)
+                        is AppImageSource.ApkIcon ->
+                            packages.artifacts.readApk(source.path, 0)?.let { info ->
+                                info.applicationInfo?.apply {
+                                    sourceDir = source.path
+                                    publicSourceDir = source.path
                                 }
-                        }
+                                packages.artifacts.loadApplicationIcon(info)
+                            }
                     }
-                ImageFetchResult(
-                    requireNotNull(drawable) { "Application icon is unavailable" }.asImage(),
-                    false,
-                    DataSource.DISK,
-                )
-            }
-    }
+                }
+            ImageFetchResult(
+                requireNotNull(drawable) { "Application icon is unavailable" }.asImage(),
+                false,
+                DataSource.DISK,
+            )
+        }
+}
 
-private fun leasedImageSource(
+internal fun leasedImageSource(
     original: ImageSource,
     lease: ImageCacheLease,
 ): ImageSource {
     val close = AutoCloseable {
-        try {
+        lease.use {
             original.close()
-        } finally {
-            lease.close()
         }
     }
     val file = original.fileOrNull()

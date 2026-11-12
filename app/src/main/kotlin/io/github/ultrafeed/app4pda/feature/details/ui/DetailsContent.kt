@@ -40,7 +40,11 @@ internal fun DetailsRequestState(
 ) {
     val waitingOnStore = state.playLoading && state.tab != DetailsTab.FORUM
     if (state.loading || state.actionBusy || waitingOnStore)
-        AppLoadingIndicator(Modifier.padding(AppLayout.content))
+        AppLoadingIndicator(
+            Modifier.padding(
+                AppLayout.content,
+            ),
+        )
     if (state.error || state.actionError)
         AppErrorCard(
             problem =
@@ -65,12 +69,15 @@ internal fun DetailsMetadata(data: AppDetails, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(AppLayout.itemGap),
     ) {
         if (data.version.isNotBlank())
-            Text(data.version, style = MaterialTheme.typography.titleSmall)
+            Text(
+                data.version,
+                style = MaterialTheme.typography.titleSmall,
+            )
         if (data.updatedAt > 0)
             Text(
                 stringResource(
                     R.string.last_dt_upd,
-                    DisplayFormats.dateTime(data.updatedAt, "dd.MM.yyyy, HH:mm"),
+                    DisplayFormats.dateTime(data.updatedAt),
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -157,7 +164,10 @@ private fun ColumnScope.DescriptionDocument(
     onLink: (String) -> Unit,
 ) {
     if (section.document.isBlank() && section.screenshots.isEmpty())
-        Text(stringResource(R.string.no_description), Modifier.padding(AppLayout.content))
+        Text(
+            stringResource(R.string.no_description),
+            Modifier.padding(AppLayout.content),
+        )
     else
         DocumentContent(
             origin = origin,

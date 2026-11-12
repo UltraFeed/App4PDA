@@ -43,10 +43,11 @@ class AppDetailsRepository(
 ) {
     private val context = context.applicationContext
 
-    val actions
+    val actions: DetailsActions
         get() = forumSource.actions
 
-    fun problem(source: String, failure: Throwable) = SourceProblem.from(context, source, failure)
+    fun problem(source: String, failure: Throwable): SourceProblem =
+        SourceProblem.from(context, source, failure)
 
     suspend fun load(
         topicId: Int,
@@ -316,7 +317,7 @@ class AppDetailsRepository(
         val store: RuStoreDetails?,
     )
 
-    private fun selectPackage(
+    internal fun selectPackage(
         requested: String,
         summary: TopicSummary?,
         forum: ForumInfo?,
@@ -327,7 +328,7 @@ class AppDetailsRepository(
         else requested.ifBlank { summary?.packageName.orEmpty() }
     }
 
-    private suspend fun completePlay(
+    internal suspend fun completePlay(
         loaded: LoadedDetails,
         packageName: String,
     ): LoadedDetails {
@@ -377,7 +378,7 @@ class AppDetailsRepository(
 
     fun playLanguage(): String = market.requestLocale().toLanguageTag()
 
-    private fun marketLocaleChanged(language: String): Boolean = playLanguage() != language
+    internal fun marketLocaleChanged(language: String): Boolean = playLanguage() != language
 
     suspend fun refreshPlay(loaded: LoadedDetails): LoadedDetails =
         settings.awaitReady().let { values ->
@@ -385,7 +386,7 @@ class AppDetailsRepository(
             else loaded
         }
 
-    private suspend fun completeRuStore(
+    internal suspend fun completeRuStore(
         loaded: LoadedDetails,
         pack: String,
         cached: DetailsSection?,

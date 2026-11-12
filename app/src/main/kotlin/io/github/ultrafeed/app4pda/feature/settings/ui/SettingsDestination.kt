@@ -100,7 +100,12 @@ internal fun SettingsDestination(
 
 private fun MainActivity.restartHint(key: SettingId?) {
     if (key in setOf(SettingId.LANGUAGE, SettingId.EXTENDED_LOG))
-        Toast.makeText(this, R.string.settings_need_restart, Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+                this,
+                R.string.settings_need_restart,
+                Toast.LENGTH_SHORT,
+            )
+            .show()
 }
 
 private fun performSettingsAction(
@@ -122,7 +127,10 @@ private fun performSettingsAction(
             val intent =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                     Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                        .putExtra(Settings.EXTRA_APP_PACKAGE, activity.packageName)
+                        .putExtra(
+                            Settings.EXTRA_APP_PACKAGE,
+                            activity.packageName,
+                        )
                 else
                     Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

@@ -15,10 +15,13 @@ ij_smart_tabs = false
 ij_continuation_indent_size = 4
 ij_formatter_tags_enabled = false
 
+[*.bat]
+end_of_line = crlf
+
 [*.{kt,kts}]
-indent_style = space
-indent_size = 4
-max_line_length = 100
+# Match ktfmt Kotlinlang defaults for editing. Spotless checks the final layout.
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
 ij_kotlin_imports_layout = *
 ij_kotlin_name_count_to_use_star_import = 2147483647
 ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
@@ -59,11 +62,6 @@ ij_html_align_text = false
 ij_html_space_around_equality_in_attribute = false
 ij_html_space_after_tag_name = false
 ij_html_space_inside_empty_tag = true
-ij_html_newline_before_first_attribute = never
-ij_html_newline_after_last_attribute = never
-
-[*.sh]
-indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false

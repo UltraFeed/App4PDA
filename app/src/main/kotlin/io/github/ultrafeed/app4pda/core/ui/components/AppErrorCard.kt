@@ -1,7 +1,6 @@
 package io.github.ultrafeed.app4pda.core.ui.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -60,7 +59,6 @@ fun AppErrorCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ErrorActions(
     colors: ButtonColors,

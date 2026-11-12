@@ -70,7 +70,7 @@ class ForumCatalogCache(
             }
         }
 
-    suspend fun removeTopic(topic: Int) =
+    suspend fun removeTopic(topic: Int): Unit =
         withContext(ioDispatcher) {
             operations.withLock {
                 generation++
@@ -88,7 +88,13 @@ class ForumCatalogCache(
                                 )
                             val filtered = excludeMissing(saved.page)
                             if (filtered != saved.page)
-                                file.writeText(Json.encodeToString(saved.copy(page = filtered)))
+                                file.writeText(
+                                    Json.encodeToString(
+                                        saved.copy(
+                                            page = filtered,
+                                        ),
+                                    ),
+                                )
                         } catch (_: IOException) {
                             file.delete()
                         } catch (_: SerializationException) {
@@ -98,7 +104,7 @@ class ForumCatalogCache(
             }
         }
 
-    suspend fun clear() =
+    suspend fun clear(): Unit =
         withContext(ioDispatcher) {
             operations.withLock {
                 generation++

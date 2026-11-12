@@ -3,8 +3,6 @@ package io.github.ultrafeed.app4pda.data.forum
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.jsoup.Jsoup
-import org.junit.Assert
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ForumDocumentParserTest {
@@ -13,9 +11,9 @@ class ForumDocumentParserTest {
         val html =
             """<div class="spoil"><a title="Spoil-2578146-1"> # </a><div class="block-title">Versions</div><a href="?showtopic=116273&amp;p=2578146">#2578146</a></div>"""
         val actual = Jsoup.parseBodyFragment(ForumDocumentParser.parse(html))
-        assertTrue(actual.select("a[title^=Spoil-]").isEmpty())
+        assertThat(actual.select("a[title^=Spoil-]").isEmpty(), `is`(true))
         assertThat(
-            actual.selectFirst("a[href]")!!.text(),
+            (actual.selectFirst("a[href]") ?: return).text(),
             `is`(
                 "#2578146",
             ),
@@ -32,12 +30,12 @@ class ForumDocumentParserTest {
                 ),
             )
         assertThat(
-            body.selectFirst("a")!!.attr("href"),
+            (body.selectFirst("a") ?: return).attr("href"),
             `is`(
                 "https://example.org/photo.png",
             ),
         )
-        Assert.assertFalse(body.selectFirst("a")!!.hasAttr("onclick"))
+        assertThat((body.selectFirst("a") ?: return).hasAttr("onclick"), `is`(false))
     }
 
     @Test
@@ -55,9 +53,9 @@ class ForumDocumentParserTest {
                 "Caption Details Beta",
             ),
         )
-        assertTrue(actual.select(".spoil,img").isEmpty())
+        assertThat(actual.select(".spoil,img").isEmpty(), `is`(true))
         assertThat(
-            actual.selectFirst("a")!!.attr("href"),
+            (actual.selectFirst("a") ?: return).attr("href"),
             `is`(
                 "https://example.org/info",
             ),
@@ -70,7 +68,7 @@ class ForumDocumentParserTest {
         val html =
             """<p>Header</p><table><tbody><tr><td><img class="linked-image" src="https://example.org/icon.png"></td></tr></tbody></table><br><br><br><br><p>Body</p>"""
         val actual = Jsoup.parseBodyFragment(ForumDocumentParser.topic(html, emptyList()))
-        assertTrue(actual.select("table,img").isEmpty())
+        assertThat(actual.select("table,img").isEmpty(), `is`(true))
         assertThat(
             actual.text(),
             `is`(
@@ -96,8 +94,8 @@ class ForumDocumentParserTest {
                <a href="javascript:bad()">Unsafe</a><iframe src="https://example.org/video" title="Video"></iframe></section>""",
                 ),
             )
-        Assert.assertTrue(actual.text().contains("Keep"))
-        Assert.assertTrue(actual.text().contains("Unsafe"))
+        assertThat(actual.text().contains("Keep"), `is`(true))
+        assertThat(actual.text().contains("Unsafe"), `is`(true))
         assertThat(
             actual.select("script,form,iframe,[onerror],[href^=javascript]").size,
             `is`(
@@ -105,7 +103,7 @@ class ForumDocumentParserTest {
             ),
         )
         assertThat(
-            actual.select("a").last()!!.attr("href"),
+            (actual.select("a").last() ?: return).attr("href"),
             `is`(
                 "https://example.org/video",
             ),

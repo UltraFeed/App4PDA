@@ -30,7 +30,6 @@ internal fun forumUpdateError(
                 R.string.forum_update_quota,
                 DisplayFormats.dateTime(
                     forum.searchRetryAt(now),
-                    "dd.MM.yyyy, HH:mm",
                 ),
             )
 
@@ -43,7 +42,10 @@ internal fun forumUpdateError(
         networkProblem != null -> context.getString(networkProblem)
 
         forum?.reason == ForumFailure.HTTP && forum.statusCode != null ->
-            context.getString(R.string.forum_update_http, forum.statusCode)
+            context.getString(
+                R.string.forum_update_http,
+                forum.statusCode,
+            )
 
         forum?.reason == ForumFailure.NETWORK -> context.getString(R.string.forum_update_network)
         forum?.reason == ForumFailure.EMPTY_CONTENT ->

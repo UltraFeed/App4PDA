@@ -98,10 +98,6 @@ class CrashReportCache(cacheDir: File, private val now: () -> Long = System::cur
     }
 
     @Synchronized
-    fun sizeBytes(): Long =
-        directory.listFiles().orEmpty().filter { it.isFile }.sumOf { it.length() }
-
-    @Synchronized
     fun clear() {
         document.delete()
         export.delete()

@@ -42,7 +42,10 @@ class CrashReports(
         get() =
             File(
                 context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                    ?: File(context.filesDir, "downloads"),
+                    ?: File(
+                        context.filesDir,
+                        "downloads",
+                    ),
                 "logs",
             )
 
@@ -60,7 +63,13 @@ class CrashReports(
                 )
             check(output.parentFile?.isDirectory == true || output.parentFile?.mkdirs() == true)
             val process =
-                ProcessBuilder("logcat", "--pid=${android.os.Process.myPid()}", "-v", "time", "-d")
+                ProcessBuilder(
+                        "logcat",
+                        "--pid=${android.os.Process.myPid()}",
+                        "-v",
+                        "time",
+                        "-d",
+                    )
                     .start()
             var completed = false
             try {
@@ -138,7 +147,9 @@ class CrashReports(
             handler.postDelayed(
                 cleanup,
                 (it.createdAt + AppPolicy.CACHE_TTL_MILLIS - System.currentTimeMillis())
-                    .coerceAtLeast(1),
+                    .coerceAtLeast(
+                        1,
+                    ),
             )
         }
     }

@@ -68,8 +68,8 @@ private class ForumPackageCandidates(
     }
 
     private suspend fun checkCandidates(page: ForumTopicSearchPage) {
-        for (topic in page.topics) {
-            if (outcome == null && topics.add(topic.id)) checkCandidate(topic.id)
+        for ((id) in page.topics) {
+            if (outcome == null && topics.add(id)) checkCandidate(id)
         }
     }
 

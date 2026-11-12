@@ -13,6 +13,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -46,9 +47,9 @@ class SettingsViewModel(
                     },
             ),
         )
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<SettingsUiState> = mutableState.asStateFlow()
 
-    val log = SettingsLog(viewModelScope, savedState, mutableState, prepareLogFile)
+    val log: SettingsLog = SettingsLog(viewModelScope, savedState, mutableState, prepareLogFile)
 
     init {
         viewModelScope.launch {

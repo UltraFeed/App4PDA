@@ -4,9 +4,9 @@ import kotlinx.serialization.json.Json
 
 /** Credentials are immutable and intentionally have no generated data-class toString. */
 class ForumSessionSettings internal constructor(values: Map<String, Any>, rules: ParsingRules) {
-    val cookies = (values["cookies"] as? String).orEmpty()
-    val username = (values["auth_username"] as? String).orEmpty()
-    val userId = runCatching {
+    val cookies: String = (values["cookies"] as? String).orEmpty()
+    val username: String = (values["auth_username"] as? String).orEmpty()
+    val userId: Int = runCatching {
         Regex(rules["forum_cookie_validate_pattern"])
             .find(cookies)
             ?.groupValues
@@ -14,10 +14,10 @@ class ForumSessionSettings internal constructor(values: Map<String, Any>, rules:
             ?.toIntOrNull() ?: 0
     }
         .getOrDefault(0)
-    val authenticated
+    val authenticated: Boolean
         get() = userId > 0
 
-    val avatarUrl =
+    val avatarUrl: String? =
         (values[FORUM_ACCOUNTS] as? String)?.let {
             Json.decodeFromString<List<ForumAccount>>(it)
                 .firstOrNull { account -> account.id == userId }

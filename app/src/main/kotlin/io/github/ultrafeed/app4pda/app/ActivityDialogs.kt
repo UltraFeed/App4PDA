@@ -12,7 +12,6 @@ import io.github.ultrafeed.app4pda.app.navigation.AppDestination
 import io.github.ultrafeed.app4pda.app.navigation.AppEntry
 import io.github.ultrafeed.app4pda.app.shell.MainDialogs
 import io.github.ultrafeed.app4pda.app.shell.MainDialogsState
-import io.github.ultrafeed.app4pda.data.forum.ForumUrls
 import io.github.ultrafeed.app4pda.data.preferences.AppSettings
 import io.github.ultrafeed.app4pda.feature.downloads.data.DownloadController
 import io.github.ultrafeed.app4pda.feature.downloads.data.DownloadLinks
@@ -35,15 +34,9 @@ internal class ActivityDialogs(
             ::resolveDownloadConfirmation,
             ::resolveOpenDownloads,
             ::resolveWebViewWarning,
-            { state = state.copy(permissionsDenied = false) },
-        )
-    }
-
-    internal fun confirmDownload(url: String) {
-        state =
-            state.copy(
-                downloadUrl = ForumUrls.normalize(url),
-            )
+        ) {
+            state = state.copy(permissionsDenied = false)
+        }
     }
 
     private fun resolveDownloadConfirmation(accepted: Boolean) {
@@ -76,7 +69,7 @@ internal class ActivityDialogs(
         }
     }
 
-    fun requestOpenDownloadsConfirmation() {
+    private fun requestOpenDownloadsConfirmation() {
         activity.runOnUiThread {
             state = state.copy(openDownloads = true)
         }

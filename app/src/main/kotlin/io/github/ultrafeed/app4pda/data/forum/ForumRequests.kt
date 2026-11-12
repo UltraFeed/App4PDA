@@ -106,12 +106,15 @@ class ForumRequests(
                     )
                     .also { blocked = it }
             }
+
             quota -> {
                 val duration = failure.retryAfterMillis ?: SEARCH_COOLDOWN_MILLIS
                 postpone(duration)
             }
+
             failure.reason == ForumFailure.LOGIN_REQUIRED ||
                 failure.statusCode == HttpStatusCode.Forbidden.value -> blocked = failure
+
             (failure.statusCode ?: 0) >= HttpStatusCode.InternalServerError.value ||
                 failure.reason == ForumFailure.NETWORK -> pacing.failed()
         }

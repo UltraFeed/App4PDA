@@ -32,3 +32,15 @@ spotless {
         endWithNewline()
     }
 }
+
+tasks.register("verifyDebug") {
+    group = "verification"
+    description = "Runs the debug checks and builds the APK."
+    dependsOn(
+        "spotlessCheck",
+        ":app:detektDebug",
+        ":app:lintDebug",
+        ":app:testDebugUnitTest",
+        ":app:assembleDebug",
+    )
+}

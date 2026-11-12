@@ -63,7 +63,10 @@ internal fun playSection(context: Context, info: PlayAppDetails): DetailsSection
                 "<br><br>" +
                 info.changes +
                 "<br><br>" +
-                (if (!info.free) context.getString(R.string.play_paid)
+                (if (!info.free)
+                        context.getString(
+                            R.string.play_paid,
+                        )
                     else if (info.restricted) context.getString(R.string.play_restricted) else "")
                     .htmlEncode(),
             baseUrl = "https://play.google.com/",
@@ -113,9 +116,9 @@ internal fun LoadedDetails.withPreviousStores(
 internal fun ruStoreSection(context: Context, info: RuStoreDetails) =
     DetailsSection(
         context.getString(R.string.source_rustore),
-        info.fullDescription.let {
-            it.htmlEncode().replace("\n", "<br>")
-        } + "<br><br>" + info.whatsNew.htmlEncode().replace("\n", "<br>"),
+        info.fullDescription.htmlEncode().replace("\n", "<br>") +
+            "<br><br>" +
+            info.whatsNew.htmlEncode().replace("\n", "<br>"),
         info.fileUrls.filter { it.type == "SCREENSHOT" }.sortedBy { it.ordinal }.map { it.fileUrl },
     )
 
@@ -210,5 +213,10 @@ internal fun Context.failedStoreSection(
 ): DetailsSection {
     val problem = SourceProblem.from(this, title, failure)
     return previous?.copy(problem = problem)
-        ?: DetailsSection(title, "", error = true, problem = problem)
+        ?: DetailsSection(
+            title,
+            "",
+            error = true,
+            problem = problem,
+        )
 }

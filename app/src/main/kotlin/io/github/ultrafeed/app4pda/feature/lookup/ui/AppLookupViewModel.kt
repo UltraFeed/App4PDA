@@ -8,6 +8,7 @@ import io.github.ultrafeed.app4pda.feature.lookup.data.AppLookupRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -34,10 +35,10 @@ class AppLookupViewModel(
                 AppLookupMatch(it, saved.get<String>(FOUND_PACKAGE).orEmpty())
             }
     private val mutableState =
-        MutableStateFlow<AppLookupUiState>(
+        MutableStateFlow(
             restoredMatch?.let { AppLookupUiState.Found(it) } ?: AppLookupUiState.NotFound,
         )
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<AppLookupUiState> = mutableState.asStateFlow()
 
     init {
         if (restoredMatch == null && packageName.isNotBlank()) load()
@@ -55,9 +56,6 @@ class AppLookupViewModel(
         saved[RESULT_CONSUMED] = true
         return found.app
     }
-
-    fun hasPendingResult() =
-        state.value is AppLookupUiState.Found && saved.get<Boolean>(RESULT_CONSUMED) != true
 
     private fun load() {
         mutableState.value = AppLookupUiState.Loading

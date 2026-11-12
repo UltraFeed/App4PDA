@@ -14,7 +14,6 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Badge
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -29,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import io.github.ultrafeed.app4pda.core.ui.theme.AppLayout
 
 /** One shared single-choice surface for page selectors; page owners retain pager state. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SectionSwitches(
     items: List<SectionSwitch>,

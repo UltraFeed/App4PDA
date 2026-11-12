@@ -7,7 +7,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 internal fun informationDate(value: Long) = DisplayFormats.dateTime(value).ifEmpty { "—" }
 
@@ -35,18 +34,6 @@ object DisplayFormats {
             else -> context.getString(R.string.format_size_bytes, bytes)
         }
     }
-
-    fun remainingTime(context: Context, seconds: Int): String =
-        when {
-            seconds < 0 -> context.getString(R.string.format_time_unknown)
-            TimeUnit.SECONDS.toMinutes(seconds.toLong()) > 0 ->
-                context.getString(
-                    R.string.format_time_minutes,
-                    TimeUnit.SECONDS.toMinutes(seconds.toLong()),
-                )
-            else ->
-                context.resources.getQuantityString(R.plurals.format_time_seconds, seconds, seconds)
-        }
 
     private val androidVersions =
         listOf(

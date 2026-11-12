@@ -37,7 +37,10 @@ internal fun LookupDestination(
                     model.consumeResult()?.let { match ->
                         latestFound(
                             if (match.topicId > 0)
-                                AppDestination.Details(match.topicId, match.packageName)
+                                AppDestination.Details(
+                                    match.topicId,
+                                    match.packageName,
+                                )
                             else AppDestination.Catalog(linked = match.packageName),
                         )
                     }

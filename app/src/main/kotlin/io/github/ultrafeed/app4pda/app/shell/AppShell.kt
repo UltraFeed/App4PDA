@@ -57,7 +57,6 @@ import io.github.ultrafeed.app4pda.core.ui.theme.AppTheme
 import io.github.ultrafeed.app4pda.feature.installed.data.InstalledAppsRepository
 import io.github.ultrafeed.app4pda.feature.installed.data.UpdateSchedule
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -79,6 +78,7 @@ fun AppShell(activity: MainActivity) {
         appearance.accentColor,
         appearance.animationsEnabled,
         appearance.useSystemAccent,
+        applySystemBarContrast = false,
     ) {
         val motion = NavigationMotion(appearance.animationsEnabled, MaterialTheme.motionScheme)
         val gallery = current.destination is AppDestination.Gallery
@@ -99,8 +99,9 @@ fun AppShell(activity: MainActivity) {
                 if (navigation.selected == MainSection.HOME) {
                     decorated.getValue(MainSection.HOME)
                 } else {
-                    listOf(decorated.getValue(MainSection.HOME).first()) +
-                        decorated.getValue(navigation.selected)
+                    listOf(
+                        decorated.getValue(MainSection.HOME).first(),
+                    ) + decorated.getValue(navigation.selected)
                 }
             MainStackDisplay(
                 entries,

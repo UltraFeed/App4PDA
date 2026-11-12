@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -77,14 +78,14 @@ class ForumDigest(
         }
     }
 
-    val coverageChanges =
+    val coverageChanges: Flow<DigestCoverage> =
         settings.changes
             .map {
                 DigestCoverage(it.digestNewIssues, it.digestUpdatedIssues)
             }
             .distinctUntilChanged()
 
-    suspend fun coverage(): DigestCoverage =
+    private suspend fun coverage(): DigestCoverage =
         settings.awaitReady().let {
             DigestCoverage(it.digestNewIssues, it.digestUpdatedIssues)
         }
@@ -125,6 +126,7 @@ class ForumDigest(
                     }
                     result.preview
                 }
+
                 ForumTopicPreviewResult.Missing -> {
                     removeMissingTopic(topic)
                     null

@@ -73,7 +73,6 @@ internal fun DownloadsDestination(
         DownloadLaunchers(
             { exports.file.launch(it) },
             { exports.directory.launch(null) },
-            { uninstall.launch(it) },
         )
     ObserveDownloads(model)
     DownloadsPage(
@@ -135,7 +134,13 @@ private fun rememberUninstallResult(
         if (
             path != null &&
                 pack != null &&
-                runCatching { activity.packageManager.getPackageInfo(pack, 0) }.isFailure
+                runCatching {
+                    activity.packageManager.getPackageInfo(
+                        pack,
+                        0,
+                    )
+                }
+                    .isFailure
         )
             onOpen(path)
         onRefresh()
@@ -144,7 +149,6 @@ private fun rememberUninstallResult(
 private class DownloadLaunchers(
     val document: (String) -> Unit,
     val directory: () -> Unit,
-    val uninstall: (Intent) -> Unit,
 )
 
 @Composable
@@ -163,7 +167,9 @@ private fun rememberReadyFileOpener(
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                     !activity.packageManager.canRequestPackageInstalls()
             )
-                onPermissionRequired(request.path)
+                onPermissionRequired(
+                    request.path,
+                )
             else if (ready.split)
                 scope.launch {
                     activity.downloadAction {

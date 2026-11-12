@@ -19,5 +19,5 @@ enum class ThemeMode {
 
 /** Default seed for the application's custom accent. */
 object AppearanceDefaults {
-    const val ACCENT = 0xff1b6ef3.toInt()
+    const val ACCENT: Int = 0xff1b6ef3.toInt()
 }

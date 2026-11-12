@@ -35,7 +35,11 @@ class PlayPackageInstaller(private val packages: PackageInspector) {
         require(
             base.packageName == group.packageName &&
                 PackageInfoCompat.getLongVersionCode(base) == group.versionCode &&
-                !packages.artifacts.getSignatures(base).isNullOrEmpty(),
+                !packages.artifacts
+                    .getSignatures(
+                        base,
+                    )
+                    .isNullOrEmpty(),
         ) {
             "Inconsistent APK delivery"
         }

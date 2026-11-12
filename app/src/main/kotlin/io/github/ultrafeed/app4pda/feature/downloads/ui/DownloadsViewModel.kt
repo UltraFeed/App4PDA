@@ -53,7 +53,7 @@ class DownloadsViewModel(
         )
     private var exportWaiting = false
     private var dismissedListError: String? = null
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<DownloadsUiState> = mutableState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -77,20 +77,22 @@ class DownloadsViewModel(
         action { operations.reload(retryFailed) }
     }
 
-    fun delete(entry: DownloadEntry) = action {
+    fun delete(entry: DownloadEntry): Unit = action {
         operations.deleteEntry(entry)
     }
 
-    fun rename(entry: DownloadEntry, name: String) = action { operations.renameEntry(entry, name) }
+    fun rename(entry: DownloadEntry, name: String): Unit = action {
+        operations.renameEntry(entry, name)
+    }
 
     fun transfer(
         target: TransferTarget,
         command: TransferCommand,
-    ) = action {
+    ): Unit = action {
         operations.transfer(target, command)
     }
 
-    fun install(entry: DownloadEntry) = action {
+    fun install(entry: DownloadEntry): Unit = action {
         val request = operations.installEntry(entry)
         currentCoroutineContext().ensureActive()
         mutableState.update { it.copy(pendingInstall = request) }
@@ -127,7 +129,11 @@ class DownloadsViewModel(
                     try {
                         operations.exportEntry(entry, destination) { value ->
                             if (viewModelScope.isActive)
-                                mutableState.update { it.copy(exportProgress = value) }
+                                mutableState.update {
+                                    it.copy(
+                                        exportProgress = value,
+                                    )
+                                }
                         }
                         currentCoroutineContext().ensureActive()
                         mutableState.update { it.copy(exportComplete = true) }

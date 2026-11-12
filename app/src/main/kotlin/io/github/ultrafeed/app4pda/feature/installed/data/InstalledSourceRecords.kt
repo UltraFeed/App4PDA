@@ -37,7 +37,9 @@ internal class InstalledSourceRecords(
         if (
             !current.preferences.hidden &&
                 !current.preferences.ignoreForum &&
-                current.sameBinding(expected)
+                current.sameBinding(
+                    expected,
+                )
         )
             users.saveInstalled(current.copy(bindingSearchCompleted = true))
     }
@@ -52,7 +54,10 @@ internal class InstalledSourceRecords(
             users.installed(expected.key)?.takeIf {
                 !it.preferences.hidden &&
                     it.sameBinding(expected) &&
-                    it.acceptsForum(info, confirmPackage)
+                    it.acceptsForum(
+                        info,
+                        confirmPackage,
+                    )
             } ?: return false
         val now = System.currentTimeMillis()
         users.saveInstalled(
@@ -74,14 +79,6 @@ internal class InstalledSourceRecords(
         return true
     }
 
-    suspend fun acceptVerifiedTopic(info: ForumInfo) = transaction {
-        for (expected in users.installedForTopic(info.topicId)) writeForum(
-            expected,
-            info,
-            confirmPackage = false,
-        )
-    }
-
     internal suspend fun applyPlay(requested: Map<String, LocalPackage>, batch: MarketBatch) =
         transaction {
             currentCoroutineContext().ensureActive()
@@ -89,7 +86,7 @@ internal class InstalledSourceRecords(
             val now = System.currentTimeMillis()
             for (name in batch.unavailablePackages) {
                 val old = matchingPackage(name, requested) ?: continue
-                users.saveInstalled(old.copy(playDiscovery = SourceDiscovery(false, now)))
+                users.saveInstalled(old.copy(playDiscovery = SourceDiscovery(checkedAt = now)))
                 users.deletePlayCache(old.packageName)
             }
             for ((release) in batch.items) {
@@ -125,7 +122,9 @@ internal class InstalledSourceRecords(
             row.local == expected.local && !row.preferences.hidden && !row.preferences.ignoreRuStore
         ) {
             users.saveInstalled(
-                row.copy(ruStoreDiscovery = SourceDiscovery(false, System.currentTimeMillis())),
+                row.copy(
+                    ruStoreDiscovery = SourceDiscovery(checkedAt = System.currentTimeMillis()),
+                ),
             )
             users.deleteRuStoreCache(row.packageName)
         }
@@ -160,14 +159,14 @@ internal class InstalledSourceRecords(
 }
 
 /** A source response belongs to the exact package/binding revision that requested it. */
-private fun InstalledRecord.sameBinding(expected: InstalledRecord): Boolean {
+internal fun InstalledRecord.sameBinding(expected: InstalledRecord): Boolean {
     val sameChoice =
         bindingSearchCompleted == expected.bindingSearchCompleted &&
             bindingRevision == expected.bindingRevision
     return sameChoice && local == expected.local && forum == expected.forum
 }
 
-private fun InstalledRecord.acceptsForum(info: ForumInfo, confirmPackage: Boolean): Boolean =
+internal fun InstalledRecord.acceptsForum(info: ForumInfo, confirmPackage: Boolean): Boolean =
     info.topicId > 0 &&
         if (confirmPackage) {
             !bindingSearchCompleted &&

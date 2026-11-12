@@ -4,8 +4,6 @@ import io.github.ultrafeed.app4pda.data.forum.ForumTopicPreview
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CatalogPreviewsTest {
@@ -96,7 +94,7 @@ class CatalogPreviewsTest {
                 "icon-1",
             ),
         )
-        assertFalse((updated[1] as CatalogApp).requiresAndroidConfirmation)
+        assertThat((updated[1] as CatalogApp).requiresAndroidConfirmation, `is`(false))
         assertThat(
             updated[0],
             sameInstance(
@@ -109,7 +107,7 @@ class CatalogPreviewsTest {
                 untouched,
             ),
         )
-        assertTrue(state.hasMore)
+        assertThat(state.hasMore, `is`(true))
         assertThat(
             state.rows.size,
             `is`(

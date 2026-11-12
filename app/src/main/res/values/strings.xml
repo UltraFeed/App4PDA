@@ -56,14 +56,7 @@
     <string name="format_size_mb">%1$.2f МБ</string>
     <string name="format_size_gb">%1$.2f ГБ</string>
     <string name="format_size_tb">%1$.2f ТБ</string>
-    <string name="format_time_unknown">-- сек</string>
     <string name="format_time_minutes">%1$d мин</string>
-    <plurals name="format_time_seconds">
-        <item quantity="one">%1$d сек</item>
-        <item quantity="few">%1$d сек</item>
-        <item quantity="many">%1$d сек</item>
-        <item quantity="other">%1$d сек</item>
-    </plurals>
     <string name="downloads_save_copy">Сохранить в память устройства</string>
     <string name="downloads_saved_copy">Копия сохранена. Исходный файл остаётся в кэше приложения.</string>
     <string name="downloads_cache_missing">Файл удалён из кэша. Скачайте его повторно.</string>
@@ -244,12 +237,8 @@
     <string name="forum_search_limited">Форум ограничил частоту поиска. Повторите позже.</string>
     <string name="use_system_accent">Использовать системные акценты</string>
     <string name="use_system_accent_summary">Цвета устройства на Android 12 и новее. Выключите для своего акцента.</string>
-    <string name="update_error_forum">Не удалось проверить обновления на форуме</string>
-    <string name="update_error_play">Не удалось проверить обновления Google Play</string>
-    <string name="update_error_operation">Не удалось обновить приложения</string>
     <string name="open_rustore">Открыть в RuStore</string>
     <string name="rustore_check_updates">Проверять обновления RuStore</string>
-    <string name="update_error_rustore">Не удалось проверить обновления RuStore</string>
     <string name="digest_new_issues">Новые приложения: количество последних выпусков</string>
     <string name="digest_updated_issues">Обновления: количество последних выпусков</string>
     <string name="digest_issues_summary">От 1 до 6 последних выпусков. Повторы показываются только в самом свежем интервале.</string>
@@ -322,7 +311,6 @@
     <string name="catalog_section_540">Эмуляторы компьютеров и ОС</string>
     <string name="self_update_check">Проверить обновление App4PDA</string>
     <string name="self_update_available">Доступна версия App4PDA %1$s. Скачать обновление?</string>
-    <string name="self_update_download">Скачать</string>
     <string name="self_update_later">Позже</string>
     <string name="self_update_current">Установлена актуальная версия App4PDA</string>
     <string name="self_update_failed">Не удалось подготовить обновление App4PDA</string>

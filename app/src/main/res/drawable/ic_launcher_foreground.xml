@@ -1,13 +1,13 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-        android:width="@dimen/launcher_foreground_size"
-        android:height="@dimen/launcher_foreground_size"
-        android:viewportWidth="192"
-        android:viewportHeight="192">
-        <path
-                android:fillColor="#00000000"
-                android:strokeColor="@color/launcher_blue"
-                android:strokeWidth="12"
-                android:strokeLineJoin="round"
-                android:strokeLineCap="round"
-                android:pathData="@string/forum_logo_four_path" />
+    android:width="@dimen/launcher_foreground_size"
+    android:height="@dimen/launcher_foreground_size"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="@color/launcher_blue"
+        android:strokeWidth="12"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:pathData="@string/forum_logo_four_path" />
 </vector>

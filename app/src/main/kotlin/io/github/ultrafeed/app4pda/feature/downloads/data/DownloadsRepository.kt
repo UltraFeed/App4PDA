@@ -31,6 +31,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -55,9 +56,9 @@ internal constructor(
     private val refreshLock = Mutex()
     private val listing = ReadyDownloads()
     private val mutableState = MutableStateFlow(DownloadsSnapshot(loading = true))
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<DownloadsSnapshot> = mutableState.asStateFlow()
 
-    suspend fun refresh() =
+    suspend fun refresh(): Unit =
         withContext(ioDispatcher) {
             refreshLock.withLock {
                 try {
@@ -129,7 +130,6 @@ internal constructor(
                 )
         else null
 
-    @OptIn(FlowPreview::class)
     suspend fun retry() {
         controller.retryFailed()
         refresh()
@@ -158,8 +158,8 @@ internal constructor(
                         controller.events
                             .map { tasks -> tasks.map { it.id to it.status } }
                             .distinctUntilChanged()
-                            .map { Unit },
-                        controller.groupEvents.map { Unit },
+                            .map {},
+                        controller.groupEvents.map {},
                     )
                     .debounce(
                         AppPolicy.FILE_EVENT_DEBOUNCE_MILLIS.milliseconds,
@@ -183,7 +183,7 @@ internal constructor(
         entry: DownloadEntry,
         destination: Uri,
         progress: (Float) -> Unit,
-    ) =
+    ): Unit =
         withContext(ioDispatcher) {
             var completed = false
             try {
@@ -210,7 +210,7 @@ internal constructor(
             }
         }
 
-    suspend fun delete(entry: DownloadEntry) =
+    suspend fun delete(entry: DownloadEntry): Unit =
         withContext(ioDispatcher) {
             run {
                 val path = entry.path
@@ -232,7 +232,7 @@ internal constructor(
             refresh()
         }
 
-    suspend fun rename(entry: DownloadEntry, name: String) =
+    suspend fun rename(entry: DownloadEntry, name: String): Unit =
         withContext(ioDispatcher) {
             require(
                 !entry.group &&
@@ -279,7 +279,12 @@ internal constructor(
             }
             verifiedFile(entry.path)
             if (!file.extension.equals("apk", true))
-                return@withContext InstallRequest(entry.path, "", false, installable = false)
+                return@withContext InstallRequest(
+                    entry.path,
+                    "",
+                    false,
+                    installable = false,
+                )
             val info =
                 packages.artifacts.readApk(entry.path, packages.artifacts.signatureQueryFlags)
                     ?: return@withContext InstallRequest(entry.path, "", false, installable = false)

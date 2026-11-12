@@ -181,21 +181,21 @@ internal class SelfUpdate(
     }
 }
 
-private fun Application.installed() =
+internal fun Application.installed() =
     try {
         packageManager.getPackageInfo(packageName, 0)
     } catch (failure: PackageManager.NameNotFoundException) {
         throw IllegalStateException("Installed App4PDA package is unavailable", failure)
     }
 
-private fun newerVersion(candidate: String, installed: String?): Boolean {
+internal fun newerVersion(candidate: String, installed: String?): Boolean {
     val latest = stableVersion(candidate)
     val current = installed?.let(::stableVersion)
-    if (latest == null || current == null) return false
-    return latest
-        .zip(current)
-        .firstOrNull { (left, right) -> left != right }
-        ?.let { (left, right) -> left > right } ?: false
+    return !(latest == null || current == null) &&
+        latest
+            .zip(current)
+            .firstOrNull { (left, right) -> left != right }
+            ?.let { (left, right) -> left > right } ?: false
 }
 
 @Serializable

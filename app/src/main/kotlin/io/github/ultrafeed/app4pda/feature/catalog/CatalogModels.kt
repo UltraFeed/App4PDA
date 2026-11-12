@@ -33,7 +33,7 @@ data class CatalogPage(
     val limit: Int,
     val nextPageUrl: String? = null,
 ) {
-    val hasMore
+    val hasMore: Boolean
         get() =
             nextPageUrl != null ||
                 (limit > 0 && (page.toLong() + 1) * limit < total && rows.isNotEmpty())

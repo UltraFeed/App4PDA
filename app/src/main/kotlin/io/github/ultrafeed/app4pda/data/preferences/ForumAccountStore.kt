@@ -1,17 +1,15 @@
 package io.github.ultrafeed.app4pda.data.preferences
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.ultrafeed.app4pda.data.forum.ForumApiException
 import io.github.ultrafeed.app4pda.data.forum.ForumFailure
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
 /** Account mutations share the application's single DataStore writer and publication barrier. */
 class ForumAccountStore internal constructor(private val settings: AppSettings) {
-    suspend fun select(id: Int) = settings.edit {
+    suspend fun select(id: Int): Unit = settings.edit {
         val account =
             settings.decode(it).forumAccounts().firstOrNull { account -> account.id == id }
                 ?: return@edit
@@ -19,11 +17,11 @@ class ForumAccountStore internal constructor(private val settings: AppSettings) 
         it[stringPreferencesKey("auth_username")] = account.name
     }
 
-    suspend fun setAutoSwitch(enabled: Boolean) = settings.edit {
+    suspend fun setAutoSwitch(enabled: Boolean): Unit = settings.edit {
         it[booleanPreferencesKey("forum_auto_switch")] = enabled
     }
 
-    suspend fun save(cookies: String, username: String) = settings.edit {
+    suspend fun save(cookies: String, username: String): Unit = settings.edit {
         val previous = settings.decode(it)
         it[stringPreferencesKey("cookies")] = cookies
         it[stringPreferencesKey("auth_username")] = username.trim()
@@ -69,7 +67,7 @@ class ForumAccountStore internal constructor(private val settings: AppSettings) 
             )
     }
 
-    suspend fun remove(id: Int) = settings.edit {
+    suspend fun remove(id: Int): Unit = settings.edit {
         val values = settings.decode(it)
         val remaining = values.forumAccounts().filterNot { account -> account.id == id }
         it[stringPreferencesKey(FORUM_ACCOUNTS)] = Json.encodeToString(remaining)
@@ -148,5 +146,5 @@ class ForumAccountStore internal constructor(private val settings: AppSettings) 
         return settings.awaitReady()
     }
 
-    suspend fun logout() = remove(settings.awaitReady().session.userId)
+    suspend fun logout(): Unit = remove(settings.awaitReady().session.userId)
 }

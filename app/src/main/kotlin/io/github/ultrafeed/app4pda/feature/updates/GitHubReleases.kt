@@ -17,7 +17,7 @@ private val stableTag = Regex("""v[0-9]+\.[0-9]+\.[0-9]+""")
 private val sha256 = Regex("[0-9a-fA-F]{64}")
 
 internal data class GitHubRelease(val version: String, val digest: String? = null) {
-    val apkName = "App4PDA-$version.apk"
+    val apkName = "app-release.apk"
 
     fun asset(name: String) = "$PROJECT_URL/releases/download/v$version/$name"
 }
@@ -68,6 +68,7 @@ internal class GitHubReleases(private val client: OkHttpClient) {
                         else if (target == "$PROJECT_URL/releases") null
                         else throw IOException("Unexpected GitHub latest-release redirect")
                     }
+
                     else -> throw IOException("GitHub latest release HTTP ${response.code}")
                 }
             }
@@ -99,17 +100,15 @@ internal class GitHubReleases(private val client: OkHttpClient) {
 
 private fun JsonObject.value(key: String) = get(key)?.jsonPrimitive?.content
 
-private fun JsonObject.stableRelease(): GitHubRelease? {
+internal fun JsonObject.stableRelease(): GitHubRelease? {
     val tag = value("tag_name") ?: throw IOException("GitHub release tag is missing")
     if (value("draft") != "false" || value("prerelease") != "false" || !stableTag.matches(tag))
         return null
     val release = GitHubRelease(tag.removePrefix("v"))
     val asset =
-        (get("assets") as? JsonArray)
-            .orEmpty()
-            .mapNotNull { it as? JsonObject }
-            .singleOrNull { it.value("name") == release.apkName }
-            ?: throw IOException("Expected one App4PDA release APK")
+        (get("assets") as? JsonArray).orEmpty().filterIsInstance<JsonObject>().singleOrNull {
+            it.value("name") == release.apkName
+        } ?: throw IOException("Expected one App4PDA release APK")
     val digest = asset.value("digest")?.let(::parseDigest)
     return release.copy(digest = digest)
 }

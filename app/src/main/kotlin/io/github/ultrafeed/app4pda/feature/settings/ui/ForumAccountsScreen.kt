@@ -53,6 +53,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -94,7 +95,7 @@ class ForumAccountsViewModel(
         refresh?.cancel()
     }
 
-    val state =
+    val state: StateFlow<ForumAccountsState> =
         combine(
                 settings.changes.map { values ->
                     Triple(
@@ -132,11 +133,11 @@ class ForumAccountsViewModel(
                 ForumAccountsState(),
             )
 
-    fun remove(id: Int) = update { settings.accounts.remove(id) }
+    fun remove(id: Int): Unit = update { settings.accounts.remove(id) }
 
-    fun select(id: Int) = update { settings.accounts.select(id) }
+    fun select(id: Int): Unit = update { settings.accounts.select(id) }
 
-    fun autoSwitch(enabled: Boolean) = update { settings.accounts.setAutoSwitch(enabled) }
+    fun autoSwitch(enabled: Boolean): Unit = update { settings.accounts.setAutoSwitch(enabled) }
 
     private fun update(action: suspend () -> Unit) {
         if (busy.value) return
@@ -260,7 +261,6 @@ internal fun ForumAccountItem(
                             R.string.forum_account_cooldown,
                             DisplayFormats.dateTime(
                                 account.availableAt,
-                                "dd.MM.yyyy, HH:mm",
                             ),
                         )
                     else stringResource(R.string.forum_account_ready),

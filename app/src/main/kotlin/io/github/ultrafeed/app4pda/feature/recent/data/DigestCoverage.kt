@@ -56,11 +56,11 @@ data class DigestCoverage(val newIssues: Int = 1, val updatedIssues: Int = 1) {
     }
 
     companion object {
-        val ISSUE_COUNTS = 1..6
+        val ISSUE_COUNTS: IntRange = 1..6
     }
 }
 
-private fun orderedIssues(issues: List<DigestIssue>): List<DigestIssue> =
+internal fun orderedIssues(issues: List<DigestIssue>): List<DigestIssue> =
     issues
         .groupBy { DigestPeriod.parse(it.period) }
         .toList()
@@ -72,7 +72,7 @@ private fun orderedIssues(issues: List<DigestIssue>): List<DigestIssue> =
             DigestIssue(matches.first().period, matches.flatMap { it.sections }.toSet())
         }
 
-private fun selectGroups(
+internal fun selectGroups(
     source: List<DigestGroup>,
     issues: List<DigestIssue>,
     kind: DigestKind,

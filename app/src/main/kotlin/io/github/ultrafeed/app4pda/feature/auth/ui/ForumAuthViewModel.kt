@@ -8,10 +8,11 @@ import io.github.ultrafeed.app4pda.feature.auth.ForumCaptcha
 import io.github.ultrafeed.app4pda.feature.auth.ForumSession
 import io.github.ultrafeed.app4pda.feature.auth.data.ForumAuthRepository
 import java.io.IOException
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -27,7 +28,7 @@ data class ForumAuthUiState(
     val error: Throwable? = null,
     val change: ForumAuthChange? = null,
 ) {
-    val canLogin
+    val canLogin: Boolean
         get() =
             session == null &&
                 !busy &&
@@ -37,7 +38,7 @@ data class ForumAuthUiState(
                 captcha != null &&
                 (captcha.imageUrl == null || answer.isNotBlank())
 
-    override fun toString() = "ForumAuthUiState(busy=$busy, loadingCaptcha=$loadingCaptcha)"
+    override fun toString(): String = "ForumAuthUiState(busy=$busy, loadingCaptcha=$loadingCaptcha)"
 }
 
 class ForumAuthViewModel(
@@ -50,7 +51,7 @@ class ForumAuthViewModel(
                 session = repository.session,
             ),
         )
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<ForumAuthUiState> = mutableState.asStateFlow()
     private var captchaJob: Job? = null
     private var operation: Job? = null
     private var addingAccount = false
@@ -158,7 +159,7 @@ class ForumAuthViewModel(
                     input.answer,
                     captcha,
                 )
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             repository.commit(
                 cookies,
                 input.username,
@@ -201,7 +202,7 @@ class ForumAuthViewModel(
     }
 
     private suspend fun operationFailed(error: Exception) {
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         // A failed login invalidates its captcha. The user explicitly requests a fresh one.
         mutableState.value =
             state.value.copy(
@@ -235,7 +236,7 @@ class ForumAuthViewModel(
     }
 }
 
-private fun authFailure(failure: Throwable): Throwable {
+internal fun authFailure(failure: Throwable): Throwable {
     Log.w("ForumAuth", "Authentication operation failed", failure)
     return failure
 }

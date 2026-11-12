@@ -55,7 +55,7 @@ class PlayPageCache(
             }
         }
 
-    suspend fun save(details: PlayAppDetails, language: String, revision: Long) =
+    suspend fun save(details: PlayAppDetails, language: String, revision: Long): Unit =
         withContext(ioDispatcher) {
             operations.withLock {
                 currentCoroutineContext().ensureActive()
@@ -66,13 +66,18 @@ class PlayPageCache(
                     check(directory.isDirectory || directory.mkdirs()) {
                         "Cannot create Google Play page cache"
                     }
-                    AtomicFile(file(details.release.packageName, language))
+                    AtomicFile(
+                            file(
+                                details.release.packageName,
+                                language,
+                            ),
+                        )
                         .writeText(Json.encodeToString(CachedPlayPage(now(), details)))
                 }
             }
         }
 
-    suspend fun remove(pack: String) =
+    suspend fun remove(pack: String): Unit =
         withContext(ioDispatcher) {
             operations.withLock {
                 generation++
@@ -91,7 +96,7 @@ class PlayPageCache(
             }
         }
 
-    suspend fun clear() =
+    suspend fun clear(): Unit =
         withContext(ioDispatcher) {
             operations.withLock {
                 generation++

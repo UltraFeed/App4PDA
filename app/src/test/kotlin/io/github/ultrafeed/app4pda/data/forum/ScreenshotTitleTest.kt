@@ -1,18 +1,17 @@
 package io.github.ultrafeed.app4pda.data.forum
 
-import org.junit.Assert
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 class ScreenshotTitleTest {
     @Test
     fun screenshotHeadingsAcceptTheObservedLatinInitialWithoutTreatingOtherSectionsAsGallery() {
-        assertTrue(ForumTopicIcon.screenshotTitle("Скриншоты"))
-        assertTrue(ForumTopicIcon.screenshotTitle("Cкриншоты"))
-        assertTrue(ForumTopicIcon.screenshotTitle("  cкриншоты "))
-        Assert.assertFalse(ForumTopicIcon.screenshotTitle("Описание"))
-        Assert.assertFalse(ForumTopicIcon.screenshotTitle("Прошлые версии"))
-        Assert.assertFalse(ForumTopicIcon.screenshotTitle(""))
+        assertThat(ForumTopicIcon.screenshotTitle("Скриншоты"), `is`(true))
+        assertThat(ForumTopicIcon.screenshotTitle("Cкриншоты"), `is`(true))
+        assertThat(ForumTopicIcon.screenshotTitle("  cкриншоты "), `is`(true))
+        assertThat(ForumTopicIcon.screenshotTitle("Описание"), `is`(false))
+        assertThat(ForumTopicIcon.screenshotTitle("Прошлые версии"), `is`(false))
+        assertThat(ForumTopicIcon.screenshotTitle(""), `is`(false))
     }
 }

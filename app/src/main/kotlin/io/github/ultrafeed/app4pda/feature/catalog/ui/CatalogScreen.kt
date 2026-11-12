@@ -131,26 +131,48 @@ private fun CatalogRowContent(
     onOpen: (CatalogApp) -> Unit,
     onCategory: (CatalogCategory) -> Unit,
 ) {
-    if (row is CatalogCategory) {
-        CategoryItem(row) { onCategory(row) }
-    } else if (row is CatalogApp) {
-        if (row.requiresAndroidConfirmation || row.requiresAppConfirmation) {
-            Text(
-                stringResource(R.string.forum_check_android),
-                Modifier.padding(AppLayout.content),
-            )
-            return
+    when (row) {
+        is CatalogCategory -> {
+            CategoryItem(
+                row,
+            ) {
+                onCategory(
+                    row,
+                )
+            }
         }
-        CatalogAppCard(
-            row,
-            installedCards,
-            { onOpen(row) },
-            cardAppearance,
-        )
-    } else if (row is CatalogHeader)
-        Text(
-            row.title,
-            Modifier.padding(AppLayout.content),
-            style = MaterialTheme.typography.titleMedium,
-        )
+
+        is CatalogApp -> {
+            if (row.requiresAndroidConfirmation || row.requiresAppConfirmation) {
+                Text(
+                    stringResource(
+                        R.string.forum_check_android,
+                    ),
+                    Modifier.padding(
+                        AppLayout.content,
+                    ),
+                )
+                return
+            }
+            CatalogAppCard(
+                row,
+                installedCards,
+                {
+                    onOpen(
+                        row,
+                    )
+                },
+                cardAppearance,
+            )
+        }
+
+        is CatalogHeader ->
+            Text(
+                row.title,
+                Modifier.padding(
+                    AppLayout.content,
+                ),
+                style = MaterialTheme.typography.titleMedium,
+            )
+    }
 }

@@ -3,9 +3,7 @@ package io.github.ultrafeed.app4pda.app.shell
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import io.github.ultrafeed.app4pda.app.navigation.AppDestination
-import io.github.ultrafeed.app4pda.app.navigation.AppDestination.Gallery
 import io.github.ultrafeed.app4pda.app.navigation.AppDestination.Home
-import io.github.ultrafeed.app4pda.app.navigation.AppDestination.Settings
 import io.github.ultrafeed.app4pda.app.navigation.AppEntry
 import io.github.ultrafeed.app4pda.app.navigation.pop
 import io.github.ultrafeed.app4pda.app.navigation.push
@@ -15,7 +13,6 @@ import kotlinx.serialization.json.Json
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ShellNavigationStateTest {
@@ -89,9 +86,7 @@ class ShellNavigationStateTest {
                 restored,
             ),
         )
-        assertTrue(
-            stack.pop(),
-        )
+        assertThat(stack.pop(), `is`(true))
         assertThat(
             (stack.last() as AppEntry).destination,
             `is`(

@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -22,7 +23,7 @@ internal constructor(
 ) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val results = Channel<Boolean>(Channel.UNLIMITED)
-    val resultsFlow = results.receiveAsFlow()
+    val resultsFlow: Flow<Boolean> = results.receiveAsFlow()
 
     /** Accepted work belongs to the application, never to the screen that confirmed it. */
     fun submit(file: DetailsFile, pack: String) {

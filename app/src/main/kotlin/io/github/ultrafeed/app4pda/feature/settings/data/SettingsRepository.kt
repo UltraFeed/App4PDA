@@ -21,11 +21,13 @@ import io.github.ultrafeed.app4pda.feature.settings.SettingKind
 import io.github.ultrafeed.app4pda.feature.settings.SettingsSnapshot
 import java.io.File
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -43,7 +45,7 @@ class SettingsRepository(
     private var cacheBytes = 0L
     private var imageBytes: Map<ImageOrigin, Long?>? = null
     private val mutableSnapshots: MutableStateFlow<SettingsSnapshot>
-    val snapshots
+    val snapshots: StateFlow<SettingsSnapshot>
         get() = mutableSnapshots.asStateFlow()
 
     private val scope =
@@ -59,7 +61,6 @@ class SettingsRepository(
                 refresh()
             }
 
-            @Deprecated("Platform callback is no longer delivered")
             override fun onLowMemory() = Unit
         }
 
@@ -172,6 +173,7 @@ class SettingsRepository(
                     R.string.setting_requires,
                     definitions.first { it.key == required }.title,
                 )
+
             else -> fallback
         }
     }
@@ -211,7 +213,7 @@ class SettingsRepository(
     suspend fun clearCache() {
         val completed =
             withTimeoutOrNull(
-                AppPolicy.CACHE_CLEAR_TIMEOUT_MILLIS,
+                AppPolicy.CACHE_CLEAR_TIMEOUT_MILLIS.milliseconds,
             ) {
                 cache.clear()
                 refreshCacheSizes()
@@ -237,7 +239,7 @@ class SettingsRepository(
     }
 }
 
-private fun SettingItem.currentValue(values: SettingsValues): String {
+internal fun SettingItem.currentValue(values: SettingsValues): String {
     val fallback = SettingsDefaults.text(key.storageKey)
     return when (kind) {
         SettingKind.SWITCH -> values.getBoolean(key.storageKey).toString()
@@ -257,7 +259,7 @@ private fun SettingItem.currentValue(values: SettingsValues): String {
     }
 }
 
-private fun SettingItem.imageOrigin(): ImageOrigin? =
+internal fun SettingItem.imageOrigin(): ImageOrigin? =
     when (key) {
         SettingId.FORUM_CACHE_SIZE -> ImageOrigin.FORUM
         SettingId.PLAY_IMAGE_CACHE_SIZE -> ImageOrigin.GOOGLE_PLAY
@@ -265,7 +267,7 @@ private fun SettingItem.imageOrigin(): ImageOrigin? =
         else -> null
     }
 
-private fun SettingItem.summaryFor(current: String): String =
+internal fun SettingItem.summaryFor(current: String): String =
     when (kind) {
         SettingKind.NUMBER ->
             listOf(current, summary).filter(String::isNotBlank).joinToString(" · ")

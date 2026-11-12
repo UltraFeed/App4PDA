@@ -16,5 +16,5 @@ class ForumCaptcha(
     internal val cookies: String,
     internal val imageCookies: List<Cookie> = emptyList(),
 ) {
-    override fun toString() = "ForumCaptcha(required=${imageUrl != null})"
+    override fun toString(): String = "ForumCaptcha(required=${imageUrl != null})"
 }

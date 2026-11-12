@@ -77,29 +77,44 @@
             </intent-filter>
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="apps.rustore.ru" android:pathPrefix="/app/" />
+
+                <data
+                    android:scheme="https"
+                    android:host="apps.rustore.ru"
+                    android:pathPrefix="/app/" />
             </intent-filter>
             <intent-filter>
                 <action android:name="io.github.ultrafeed.app4pda.intent.action.DOWNLOAD_OPEN" />
             </intent-filter>
 
         </activity>
-        <activity-alias android:name=".app.BlueLauncher" android:targetActivity=".app.MainActivity"
-            android:enabled="true" android:exported="true" android:icon="@drawable/app_launcher">
+
+        <activity-alias
+            android:name=".app.BlueLauncher"
+            android:targetActivity=".app.MainActivity"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@drawable/app_launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
-        <activity-alias android:name=".app.AccentLauncher" android:targetActivity=".app.MainActivity"
-            android:enabled="false" android:exported="true" android:icon="@drawable/app_launcher_accent">
+        <activity-alias
+            android:name=".app.AccentLauncher"
+            android:targetActivity=".app.MainActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/app_launcher_accent">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+
         <activity
             android:theme="@style/Theme.App4pda"
             android:label="@string/attention"

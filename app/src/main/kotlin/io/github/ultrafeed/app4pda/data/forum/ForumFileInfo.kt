@@ -8,19 +8,19 @@ import java.util.Date
 
 open class ForumFileInfo() : DownloadableInfo, Comparable<ForumFileInfo>, Parcelable {
     private var url = ""
-    var fileId = 0
-    override var topicId = 0
-    override var postId = 0
+    var fileId: Int = 0
+    override var topicId: Int = 0
+    override var postId: Int = 0
     private var sizeText = ""
-    override val displaySize
+    override val displaySize: String
         get() = sizeText
 
     private var countText = ""
-    override val downloadCount
+    override val downloadCount: String
         get() = countText
 
     private var uploaded = Date(0)
-    var uploadedAt: Date
+    private var uploadedAt: Date
         get() = Date(uploaded.time)
         set(value) {
             uploaded = Date(value.time)
@@ -29,10 +29,10 @@ open class ForumFileInfo() : DownloadableInfo, Comparable<ForumFileInfo>, Parcel
     private var applicationName = ""
     private var versionName = ""
     private var abiFlags = 0
-    var crc32 = 0L
+    var crc32: Long = 0L
     private var packageId = ""
     private var versionCode = 0
-    override var minSdk = 0
+    override var minSdk: Int = 0
     private var signatureStatus = -1
 
     constructor(url: String, topicId: Int) : this() {
@@ -40,34 +40,34 @@ open class ForumFileInfo() : DownloadableInfo, Comparable<ForumFileInfo>, Parcel
         this.topicId = topicId
     }
 
-    override val downloadUrl
+    override val downloadUrl: String
         get() = url
 
     override val fileName: String
         get() = DownloadLinks.fileName(url)
 
-    override val name
+    override val name: String
         get() = applicationName
 
-    override val version
+    override val version: String
         get() = versionName
 
-    override val flags
+    override val flags: Int
         get() = abiFlags
 
-    override val packageName
+    override val packageName: String
         get() = packageId
 
-    override fun hasPackageName() = packageId.isNotEmpty()
+    override fun hasPackageName(): Boolean = packageId.isNotEmpty()
 
-    override fun hasSignatureStatus(status: Int) = signatureStatus == status
+    override fun hasSignatureStatus(status: Int): Boolean = signatureStatus == status
 
-    open val fileVersionCode
+    open val fileVersionCode: Int
         get() = versionCode
 
-    fun supportsAbi(deviceFlags: Int) = abiFlags == 0 || deviceFlags and abiFlags != 0
+    fun supportsAbi(deviceFlags: Int): Boolean = abiFlags == 0 || deviceFlags and abiFlags != 0
 
-    val hasRealVersionCode
+    val hasRealVersionCode: Boolean
         get() = !Regex("^9{4,}$").matches("$versionCode")
 
     fun setDownloadCount(value: String?) {
@@ -78,20 +78,16 @@ open class ForumFileInfo() : DownloadableInfo, Comparable<ForumFileInfo>, Parcel
         sizeText = value.orEmpty().trim()
     }
 
-    fun setSignatureStatus(value: Int) {
-        signatureStatus = value
-    }
-
     fun setDownloadUrl(value: String?) {
         url = ForumUrls.normalize(value.orEmpty())
         fileId = DownloadLinks.fileIdOrChecksum(url, "/forum/dl/post/", "/")
     }
 
-    override fun compareTo(other: ForumFileInfo) = other.uploadedAt.compareTo(uploadedAt)
+    override fun compareTo(other: ForumFileInfo): Int = other.uploadedAt.compareTo(uploadedAt)
 
-    override fun toString() = "$url ($uploadedAt)"
+    override fun toString(): String = "$url ($uploadedAt)"
 
-    override fun describeContents() = 0
+    override fun describeContents(): Int = 0
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(url)

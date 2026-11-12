@@ -10,7 +10,7 @@ object DownloadLinks {
     fun fileName(url: String): String =
         if ('/' in url) decodeWindows1251(url.substringAfterLast('/')) else url
 
-    fun extractFileId(url: String, prefix: String, suffix: String): Int {
+    private fun extractFileId(url: String, prefix: String, suffix: String): Int {
         val prefixIndex = url.indexOf(prefix)
         if (prefixIndex < 0) return -1
         val start = prefixIndex + prefix.length
@@ -18,7 +18,8 @@ object DownloadLinks {
         return if (end < start) -1 else url.substring(start, end).trim().toIntOrNull() ?: -1
     }
 
-    fun signedChecksum(bytes: ByteArray): Int = CRC32().apply { update(bytes) }.value.toInt()
+    private fun signedChecksum(bytes: ByteArray): Int =
+        CRC32().apply { update(bytes) }.value.toInt()
 
     fun fileIdOrChecksum(url: String, prefix: String, suffix: String): Int {
         val fileId = extractFileId(url, prefix, suffix)

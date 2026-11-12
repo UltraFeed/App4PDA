@@ -20,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -51,7 +52,7 @@ class InstalledAppsViewModel(
         repository.refresh()
     }
 
-    val state =
+    val state: StateFlow<InstalledAppsUiState> =
         combine(
                 repository.state,
                 saved.getStateFlow("selected_section", initial.name),
@@ -84,7 +85,7 @@ class InstalledAppsViewModel(
             )
 
     private val mutableBindingSearch = MutableStateFlow<String?>(null)
-    val bindingSearch = mutableBindingSearch.asStateFlow()
+    val bindingSearch: StateFlow<String?> = mutableBindingSearch.asStateFlow()
     private var bindingRequest: Job? = null
 
     suspend fun bindingQuery(app: InstalledApp): String? {
@@ -127,9 +128,9 @@ class InstalledAppsViewModel(
         saved["sorting"] = value.storageValue
     }
 
-    fun refresh() = repository.requestUserRefresh()
+    fun refresh(): Unit = repository.requestUserRefresh()
 
-    fun dismissErrors() = repository.dismissErrors()
+    fun dismissErrors(): Unit = repository.dismissErrors()
 
     private var mutation: Job? = null
 
@@ -161,29 +162,47 @@ class InstalledAppsViewModel(
         return job
     }
 
-    fun hidden(app: InstalledApp, hidden: Boolean) = update {
+    fun hidden(app: InstalledApp, hidden: Boolean): Job = update {
         records.choices.setHidden(app.key, hidden).also { changed ->
             if (changed && !hidden && !app.bindingSearchCompleted)
-                repository.refresh(forceSources = setOf(UpdateSource.FORUM))
+                repository.refresh(
+                    forceSources =
+                        setOf(
+                            UpdateSource.FORUM,
+                        ),
+                )
         }
     }
 
     fun ignoreSource(
         app: InstalledApp,
         source: UpdateProvider,
-    ) = update {
+    ): Job = update {
         when (source) {
             UpdateProvider.FORUM ->
                 records.choices
-                    .setForumUpdatesIgnored(app.key, !app.preferences.ignoreForum)
+                    .setForumUpdatesIgnored(
+                        app.key,
+                        !app.preferences.ignoreForum,
+                    )
                     .also { changed ->
                         if (changed && app.preferences.ignoreForum && !app.bindingSearchCompleted)
-                            repository.refresh(forceSources = setOf(UpdateSource.FORUM))
+                            repository.refresh(
+                                forceSources = setOf(UpdateSource.FORUM),
+                            )
                     }
+
             UpdateProvider.PLAY ->
-                records.choices.setMarketUpdatesIgnored(app.key, !app.preferences.ignoreMarket)
+                records.choices.setMarketUpdatesIgnored(
+                    app.key,
+                    !app.preferences.ignoreMarket,
+                )
+
             UpdateProvider.RUSTORE ->
-                records.choices.setRuStoreUpdatesIgnored(app.key, !app.preferences.ignoreRuStore)
+                records.choices.setRuStoreUpdatesIgnored(
+                    app.key,
+                    !app.preferences.ignoreRuStore,
+                )
         }
     }
 
@@ -202,10 +221,16 @@ class InstalledAppsViewModel(
                 when (sorting) {
                     InstalledSort.NAME -> byName
                     InstalledSort.UPDATES_BY_DATE ->
-                        compareByDescending<InstalledApp> { it.visibleUpdate }.then(byDate)
+                        compareByDescending<InstalledApp> { it.visibleUpdate }
+                            .then(
+                                byDate,
+                            )
 
                     InstalledSort.UPDATES_BY_NAME ->
-                        compareByDescending<InstalledApp> { it.visibleUpdate }.then(byName)
+                        compareByDescending<InstalledApp> { it.visibleUpdate }
+                            .then(
+                                byName,
+                            )
 
                     InstalledSort.UPDATED -> byDate
                 },

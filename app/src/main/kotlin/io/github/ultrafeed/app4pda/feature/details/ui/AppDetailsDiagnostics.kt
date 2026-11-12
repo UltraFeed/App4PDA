@@ -42,7 +42,11 @@ fun AppDetailsDiagnostics(
         text = {
             Column(Modifier.fillMaxWidth()) {
                 SectionSwitches(
-                    listOf(R.string.debug_information, R.string.debug_rules, R.string.debug_source)
+                    listOf(
+                            R.string.debug_information,
+                            R.string.debug_rules,
+                            R.string.debug_source,
+                        )
                         .map {
                             SectionSwitch(
                                 stringResource(it),
@@ -58,15 +62,7 @@ fun AppDetailsDiagnostics(
                     tab = it
                 }
                 when (tab) {
-                    0 ->
-                        SelectionContainer {
-                            Text(
-                                listOf(data.title, data.packageName, data.version, data.debugReport)
-                                    .filter(String::isNotBlank)
-                                    .joinToString("\n\n"),
-                                Modifier.verticalScroll(rememberScrollState()).padding(top = 16.dp),
-                            )
-                        }
+                    0 -> DiagnosticInformation(data)
 
                     1 -> DiagnosticRules(data, selected) { selected = it }
 
@@ -86,6 +82,18 @@ fun AppDetailsDiagnostics(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }
         },
     )
+}
+
+@Composable
+private fun DiagnosticInformation(data: AppDetails) {
+    SelectionContainer {
+        Text(
+            listOf(data.title, data.packageName, data.version, data.debugReport)
+                .filter(String::isNotBlank)
+                .joinToString("\n\n"),
+            Modifier.verticalScroll(rememberScrollState()).padding(top = 16.dp),
+        )
+    }
 }
 
 @Composable

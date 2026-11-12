@@ -73,11 +73,10 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val state = savedInstanceState
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        super.onCreate(state)
+        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        restoreCommands(state)
+        restoreCommands(savedInstanceState)
         var startupFrameReady = false
         val startupView = window.decorView
         startupView.viewTreeObserver.addOnPreDrawListener(
@@ -117,7 +116,7 @@ class MainActivity : ComponentActivity() {
                     if (!::initialDestination.isInitialized) {
                         initialDestination = initialIntentDestination(checkNotNull(startupIntent))
                         startupIntent = null
-                        setIntent(Intent(Intent.ACTION_MAIN).setComponent(componentName))
+                        intent = Intent(Intent.ACTION_MAIN).setComponent(componentName)
                     }
                     destinationReady = true
                     dialogs.checkWebViewAvailable()
@@ -171,7 +170,11 @@ class MainActivity : ComponentActivity() {
             intent.action != Intent.ACTION_MAIN &&
                 intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0
         if (restoredDestination != null && externalLaunch)
-            navigation.pendingIntents.add(Intent(intent))
+            navigation.pendingIntents.add(
+                Intent(
+                    intent,
+                ),
+            )
         navigation.downloadsRequested =
             state?.getBoolean("downloads_requested")
                 ?: (state == null && intent.action == ACTION_DOWNLOAD_OPEN)
@@ -210,7 +213,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Queues a copy so a later external command cannot overwrite deferred startup routing. */
-    internal fun enqueueIncomingIntent(intent: Intent) {
+    private fun enqueueIncomingIntent(intent: Intent) {
         navigation.pendingIntents.add(Intent(intent))
     }
 
@@ -236,14 +239,16 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        val state = outState
-        state.putString("main_dialogs", Json.encodeToString(dialogs.state))
+        outState.putString("main_dialogs", Json.encodeToString(dialogs.state))
         if (::initialDestination.isInitialized)
-            state.putString("initial_destination", Json.encodeToString(initialDestination))
-        state.putParcelable("startup_intent", startupIntent)
-        state.putParcelableArrayList("pending_intents", ArrayList(navigation.pendingIntents))
-        state.putBoolean("downloads_requested", navigation.downloadsRequested)
-        super.onSaveInstanceState(state)
+            outState.putString(
+                "initial_destination",
+                Json.encodeToString(initialDestination),
+            )
+        outState.putParcelable("startup_intent", startupIntent)
+        outState.putParcelableArrayList("pending_intents", ArrayList(navigation.pendingIntents))
+        outState.putBoolean("downloads_requested", navigation.downloadsRequested)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {

@@ -16,14 +16,14 @@ import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okio.Buffer
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 
 class KtorTransportTest {
     @Test
-    fun actualRestrictionResponseIsDecodedUsingDeclaredUtf8AndNotRetried() = runBlocking {
+    fun actualRestrictionResponseIsDecodedUsingDeclaredUtf8AndNotRetried(): Unit = runBlocking {
         MockWebServer().use { server ->
             server.start()
             val html = "<title>4PDA .:. Всё в порядке, но...</title>"
@@ -43,19 +43,19 @@ class KtorTransportTest {
                         )
                 assertThat(
                     page.status,
-                    CoreMatchers.`is`(
+                    `is`(
                         403,
                     ),
                 )
                 assertThat(
                     page.html,
-                    CoreMatchers.`is`(
+                    `is`(
                         html,
                     ),
                 )
                 assertThat(
                     server.requestCount,
-                    CoreMatchers.`is`(
+                    `is`(
                         1,
                     ),
                 )
@@ -64,55 +64,56 @@ class KtorTransportTest {
     }
 
     @Test
-    fun pageUsesDeclaredWindows1251AndReturnsRelativeRedirectWithoutFollowing() = runBlocking {
-        MockWebServer().use { server ->
-            server.start()
-            val html = "Сообщение"
-            server.enqueue(
-                MockResponse.Builder()
-                    .addHeader("Content-Type", "text/html; charset=windows-1251")
-                    .body(Buffer().write(html.toByteArray(charset("windows-1251"))))
-                    .build(),
-            )
-            server.enqueue(
-                MockResponse.Builder().code(302).addHeader("Location", "../profile").build(),
-            )
-            val client = createForumHttpClient()
-            client.use { client ->
-                val transport = ForumPageHttpTransport(client)
-                fun request() =
-                    HttpRequestBuilder().apply { url(server.url("/forum/post").toString()) }
-                assertThat(
-                    transport.execute(request()).html,
-                    CoreMatchers.`is`(
-                        html,
-                    ),
+    fun pageUsesDeclaredWindows1251AndReturnsRelativeRedirectWithoutFollowing(): Unit =
+        runBlocking {
+            MockWebServer().use { server ->
+                server.start()
+                val html = "Сообщение"
+                server.enqueue(
+                    MockResponse.Builder()
+                        .addHeader("Content-Type", "text/html; charset=windows-1251")
+                        .body(Buffer().write(html.toByteArray(charset("windows-1251"))))
+                        .build(),
                 )
-                val redirect = transport.execute(request())
-                assertThat(
-                    redirect.status,
-                    CoreMatchers.`is`(
-                        302,
-                    ),
+                server.enqueue(
+                    MockResponse.Builder().code(302).addHeader("Location", "../profile").build(),
                 )
-                assertThat(
-                    redirect.location,
-                    CoreMatchers.`is`(
-                        "../profile",
-                    ),
-                )
-                assertThat(
-                    server.requestCount,
-                    CoreMatchers.`is`(
-                        2,
-                    ),
-                )
+                val client = createForumHttpClient()
+                client.use { client ->
+                    val transport = ForumPageHttpTransport(client)
+                    fun request() =
+                        HttpRequestBuilder().apply { url(server.url("/forum/post").toString()) }
+                    assertThat(
+                        transport.execute(request()).html,
+                        `is`(
+                            html,
+                        ),
+                    )
+                    val redirect = transport.execute(request())
+                    assertThat(
+                        redirect.status,
+                        `is`(
+                            302,
+                        ),
+                    )
+                    assertThat(
+                        redirect.location,
+                        `is`(
+                            "../profile",
+                        ),
+                    )
+                    assertThat(
+                        server.requestCount,
+                        `is`(
+                            2,
+                        ),
+                    )
+                }
             }
         }
-    }
 
     @Test
-    fun stalledBodyIsCancelledWithoutWaitingForSocketTimeout() = runBlocking {
+    fun stalledBodyIsCancelledWithoutWaitingForSocketTimeout(): Unit = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(
@@ -136,10 +137,10 @@ class KtorTransportTest {
                 ) {
                     job.cancelAndJoin()
                 }
-                assertTrue(job.isCancelled)
+                assertThat(job.isCancelled, `is`(true))
                 assertThat(
                     server.requestCount,
-                    CoreMatchers.`is`(
+                    `is`(
                         1,
                     ),
                 )
@@ -148,7 +149,7 @@ class KtorTransportTest {
     }
 
     @Test
-    fun socketTimeoutIsReportedWithoutAnAutomaticRetry() = runBlocking {
+    fun socketTimeoutIsReportedWithoutAnAutomaticRetry(): Unit = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(
@@ -168,7 +169,7 @@ class KtorTransportTest {
                 } catch (_: IOException) {}
                 assertThat(
                     server.requestCount,
-                    CoreMatchers.`is`(
+                    `is`(
                         1,
                     ),
                 )

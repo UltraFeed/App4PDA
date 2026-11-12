@@ -80,12 +80,6 @@ object ForumDocumentParser {
         }
     }
 
-    fun postElement(html: String, postId: Int = 0): Element? =
-        ForumPage.parse(html, postId).post?.clone()
-
-    fun selectedPage(html: String, postId: Int = 0, title: String? = null): String? =
-        ForumPage.parse(html, postId).selectedHtml(title)
-
     fun safeUrl(value: String, base: String): String? = runCatching {
         val uri = URI(base).resolve(value.trim())
         if (uri.scheme?.lowercase() !in setOf("https", "http", "mailto", "market", "tg")) null
@@ -103,7 +97,7 @@ object ForumDocumentParser {
         .getOrNull()
 }
 
-private fun replaceUnsupportedMedia(media: Element, baseUrl: String) {
+internal fun replaceUnsupportedMedia(media: Element, baseUrl: String) {
 
     val target =
         media.attr("src").ifBlank {
@@ -117,7 +111,7 @@ private fun replaceUnsupportedMedia(media: Element, baseUrl: String) {
     else media.remove()
 }
 
-private fun sanitizeElement(element: Element, baseUrl: String) {
+internal fun sanitizeElement(element: Element, baseUrl: String) {
 
     element.attributes().asList().forEach { attribute ->
         val name = attribute.key.lowercase()
@@ -147,7 +141,9 @@ private fun sanitizeElement(element: Element, baseUrl: String) {
                 if (name == "href" && value.startsWith("#")) value
                 else ForumDocumentParser.safeUrl(value, baseUrl)
             if (url == null || (name != "href" && !url.startsWith("https://")))
-                element.removeAttr(attribute.key)
+                element.removeAttr(
+                    attribute.key,
+                )
             else element.attr(attribute.key, url)
         } else if (name == "style") {
             // Site sizes/colors/backgrounds are replaced by the application's stylesheet.
@@ -155,10 +151,15 @@ private fun sanitizeElement(element: Element, baseUrl: String) {
         }
     }
     if (element.tagName() == "img" && element.hasAttr("data-src"))
-        element.attr("src", element.attr("data-src")).removeAttr("data-src")
+        element
+            .attr(
+                "src",
+                element.attr("data-src"),
+            )
+            .removeAttr("data-src")
 }
 
-private fun removeTransferredImage(image: Element, body: Element) {
+internal fun removeTransferredImage(image: Element, body: Element) {
 
     val containers = image.parents().takeWhile { it !== body }
     val link = image.closest("a")
@@ -191,13 +192,13 @@ private fun collapseEmptyLines(parent: Element) {
 
     var breaks = 0
     parent.childNodes().toList().forEach { node ->
-        when {
-            node is Element && node.tagName() == "br" -> {
+        when (node) {
+            is Element if node.tagName() == "br" -> {
                 breaks++
                 if (breaks > 2) node.remove()
             }
 
-            node is TextNode && node.isBlank -> Unit
+            is TextNode if node.isBlank -> Unit
             else -> breaks = 0
         }
     }

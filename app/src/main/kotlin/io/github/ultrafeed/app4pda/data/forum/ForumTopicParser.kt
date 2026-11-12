@@ -256,7 +256,11 @@ private class TopicExtraction(
         val postId = selectedPost?.id()?.removePrefix("post-main-")?.toIntOrNull() ?: 0
         val parsedPost =
             if (postId > 0)
-                ForumPostParser(rule = { key -> rules[key].orEmpty() }).parse(page, topicId)
+                ForumPostParser(rule = { key -> rules[key].orEmpty() })
+                    .parse(
+                        page,
+                        topicId,
+                    )
             else null
         val bodyHtml = ForumDocumentParser.parse(parsedPost?.html.orEmpty())
         evaluation.diagnostics +=
@@ -328,11 +332,11 @@ private class TopicRuleEvaluation(
     }
 }
 
-private fun group(expression: Matcher, index: Int = 1) = expression.group(index).orEmpty()
+internal fun group(expression: Matcher, index: Int = 1) = expression.group(index).orEmpty()
 
-private fun stripTags(text: String) = Jsoup.parseBodyFragment(text).text().replace("'", "\"")
+internal fun stripTags(text: String) = Jsoup.parseBodyFragment(text).text().replace("'", "\"")
 
-private fun decode(text: String) = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString()
+internal fun decode(text: String) = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString()
 
 // Bit assignments are retained in parsed cache diagnostics.
 private const val GROUP_MATCH = 4

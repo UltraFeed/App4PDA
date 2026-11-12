@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
@@ -57,22 +56,20 @@ internal fun CatalogDestination(
     val installed by installedRepository.state.collectAsStateWithLifecycle()
     val linkedApp = installed.apps.firstOrNull { it.key == linkedPackage }
     val search = args.filter
-    val model: CatalogViewModel =
-        koinViewModel() {
-            parametersOf(
-                CatalogQuery(
-                    args.topic,
-                    search,
-                    args.category,
-                    linkedPackage,
-                    linkedApp?.name,
-                    (linkedApp?.forum?.topicId ?: 0) > 0,
-                    if (search != null) CatalogSort.RECENTLY_ADDED
-                    else if (linkedApp != null) CatalogSort.NAME
-                    else settings.current.catalogSortOrder,
-                ),
-            )
-        }
+    val model: CatalogViewModel = koinViewModel {
+        parametersOf(
+            CatalogQuery(
+                args.topic,
+                search,
+                args.category,
+                linkedPackage,
+                linkedApp?.name,
+                (linkedApp?.forum?.topicId ?: 0) > 0,
+                if (search != null) CatalogSort.RECENTLY_ADDED
+                else if (linkedApp != null) CatalogSort.NAME else settings.current.catalogSortOrder,
+            ),
+        )
+    }
     val ui by model.state.collectAsStateWithLifecycle()
     val categoryTitle =
         if (search == null && linkedPackage == null && args.topic <= 0)

@@ -5,7 +5,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
@@ -32,8 +31,8 @@ class ForumPackageSearchTest {
     private fun topic(id: Int) = ForumSearchTopic(id, "Model $id", "", false)
 
     @Test
-    fun completedNegativeAndAmbiguousSearchesHaveDifferentOutcomes() = runTest {
-        MatcherAssert.assertThat(
+    fun completedNegativeAndAmbiguousSearchesHaveDifferentOutcomes(): Unit = runTest {
+        assertThat(
             resolveForumPackage(
                 "org.example",
                 { _, _ -> ForumTopicSearchPage(emptyList(), null) },
@@ -44,7 +43,7 @@ class ForumPackageSearchTest {
                 ForumBindingResult.NotFound,
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             resolveForumPackage(
                 "org.example",
                 { _, _ -> ForumTopicSearchPage(listOf(topic(1), topic(2)), null) },
@@ -55,7 +54,7 @@ class ForumPackageSearchTest {
                 ForumBindingResult.Ambiguous,
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             resolveForumPackage(
                 "org.example",
                 { _, _ -> error("Must not search") },
@@ -69,7 +68,7 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun quotaIsNotACompletedNegativeSearch() = runTest {
+    fun quotaIsNotACompletedNegativeSearch(): Unit = runTest {
         val quota =
             ForumApiException(
                 ForumFailure.HTTP,
@@ -82,7 +81,7 @@ class ForumPackageSearchTest {
             resolveForumPackage("org.example", { _, _ -> throw quota }, { info(it) }, { true })
             fail("Quota must propagate without a negative outcome")
         } catch (failure: ForumApiException) {
-            MatcherAssert.assertThat(
+            assertThat(
                 failure,
                 CoreMatchers.sameInstance(
                     quota,
@@ -92,7 +91,7 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun deletedCandidateDoesNotAbortRemainingPages() = runTest {
+    fun deletedCandidateDoesNotAbortRemainingPages(): Unit = runTest {
         val loaded = mutableListOf<Int>()
         val result =
             resolveForumPackage(
@@ -108,7 +107,7 @@ class ForumPackageSearchTest {
                 },
                 { true },
             )
-        MatcherAssert.assertThat(
+        assertThat(
             loaded,
             CoreMatchers.`is`(
                 listOf(
@@ -117,7 +116,7 @@ class ForumPackageSearchTest {
                 ),
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             (result as ForumBindingResult.Unique).info.topicId,
             CoreMatchers.`is`(
                 2,
@@ -126,8 +125,8 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun onlyDeletedCandidatesAreACompletedNegativeSearch() = runTest {
-        MatcherAssert.assertThat(
+    fun onlyDeletedCandidatesAreACompletedNegativeSearch(): Unit = runTest {
+        assertThat(
             resolveForumPackage(
                 "org.example",
                 { _, _ -> ForumTopicSearchPage(listOf(topic(1)), null) },
@@ -141,7 +140,7 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun search404AndOtherCandidateFailuresStillPropagate() = runTest {
+    fun search404AndOtherCandidateFailuresStillPropagate(): Unit = runTest {
         for (status in listOf(403, 404, 429, 500)) {
             val failure = ForumApiException(ForumFailure.HTTP, "Controlled failure", status)
             try {
@@ -153,7 +152,7 @@ class ForumPackageSearchTest {
                 )
                 fail("A failed search is not an absent topic")
             } catch (actual: ForumApiException) {
-                MatcherAssert.assertThat(
+                assertThat(
                     actual,
                     CoreMatchers.sameInstance(
                         failure,
@@ -170,7 +169,7 @@ class ForumPackageSearchTest {
                 )
                 fail("Only a missing candidate may be skipped")
             } catch (actual: ForumApiException) {
-                MatcherAssert.assertThat(
+                assertThat(
                     actual,
                     CoreMatchers.sameInstance(
                         failure,
@@ -181,8 +180,8 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun aSingleMatchingNameCannotReplaceExactPackageEvidence() = runTest {
-        MatcherAssert.assertThat(
+    fun aSingleMatchingNameCannotReplaceExactPackageEvidence(): Unit = runTest {
+        assertThat(
             findForumPackage(
                 "org.example",
                 { _, _ -> ForumTopicSearchPage(listOf(topic(1)), null) },
@@ -194,7 +193,7 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun uniquenessRequiresEveryPageIncludingAnEmptyPageWithContinuation() = runTest {
+    fun uniquenessRequiresEveryPageIncludingAnEmptyPageWithContinuation(): Unit = runTest {
         val calls = mutableListOf<String?>()
         val result =
             findForumPackage(
@@ -210,11 +209,11 @@ class ForumPackageSearchTest {
                 { info(it) },
                 { true },
             )
-        MatcherAssert.assertThat(
+        assertThat(
             result,
             CoreMatchers.nullValue(),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             calls,
             CoreMatchers.`is`(
                 listOf(
@@ -227,7 +226,7 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun aFailedFollowingPageCannotCommitTheFirstCandidate() = runTest {
+    fun aFailedFollowingPageCannotCommitTheFirstCandidate(): Unit = runTest {
         try {
             findForumPackage(
                 "org.example",
@@ -243,7 +242,7 @@ class ForumPackageSearchTest {
     }
 
     @Test
-    fun aModeChangeDuringTheResponseDiscardsTheCandidate() = runTest {
+    fun aModeChangeDuringTheResponseDiscardsTheCandidate(): Unit = runTest {
         var current = true
         val entered = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
@@ -262,15 +261,15 @@ class ForumPackageSearchTest {
         entered.await()
         current = false
         release.complete(Unit)
-        MatcherAssert.assertThat(
+        assertThat(
             result.await(),
             CoreMatchers.nullValue(),
         )
     }
 
     @Test
-    fun repeatedTopicAcrossPagesIsOneCandidate() = runTest {
-        MatcherAssert.assertThat(
+    fun repeatedTopicAcrossPagesIsOneCandidate(): Unit = runTest {
+        assertThat(
             findForumPackage(
                     "org.example",
                     { _, next ->

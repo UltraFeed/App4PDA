@@ -64,18 +64,28 @@ class App4PdaApplication : Application() {
             result.second == CrashCopyResult.COPIED &&
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
         )
-            Toast.makeText(activity, R.string.crash_copied, Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                    activity,
+                    R.string.crash_copied,
+                    Toast.LENGTH_LONG,
+                )
+                .show()
         if (activity !is ReportActivity)
             activity.startActivity(
                 Intent(activity, ReportActivity::class.java)
-                    .putExtra(ReportActivity.REPORT_ID, result.first),
+                    .putExtra(
+                        ReportActivity.REPORT_ID,
+                        result.first,
+                    ),
             )
     }
 
     override fun onCreate() {
         super.onCreate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder().build(),
+            )
         startKoin {
             androidContext(this@App4PdaApplication)
             modules(infrastructureModule, dataModule, screenModule)
@@ -106,7 +116,9 @@ class App4PdaApplication : Application() {
         startupScope.cancel()
         crashHandler?.let {
             if (Thread.getDefaultUncaughtExceptionHandler() === it)
-                Thread.setDefaultUncaughtExceptionHandler(it.previous)
+                Thread.setDefaultUncaughtExceptionHandler(
+                    it.previous,
+                )
         }
         crashHandler = null
         stopKoin()

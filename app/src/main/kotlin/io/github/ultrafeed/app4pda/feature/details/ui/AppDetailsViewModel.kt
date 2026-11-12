@@ -21,6 +21,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -59,6 +60,7 @@ class AppDetailsViewModel(
 
     private val mutableState =
         MutableStateFlow(AppDetailsUiState(tab = DetailsTab.fromSaved(saved["details_tab"])))
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val favorites =
         mutableState
@@ -72,11 +74,16 @@ class AppDetailsViewModel(
                     }
             }
             .onStart { emit(null) }
-    val state =
+    val state: StateFlow<AppDetailsUiState> =
         combine(mutableState, favorites) { ui, favorite ->
                 val data = ui.data
                 if (data != null && favorite?.identity == (data.topicId to data.packageName))
-                    ui.copy(data = data.copy(favorite = favorite.value))
+                    ui.copy(
+                        data =
+                            data.copy(
+                                favorite = favorite.value,
+                            ),
+                    )
                 else ui
             }
             .stateIn(viewModelScope, SharingStarted.Eagerly, mutableState.value)
@@ -259,7 +266,7 @@ class AppDetailsViewModel(
         }
     }
 
-    fun binding(pack: String, choice: DetailsBinding) = action {
+    fun binding(pack: String, choice: DetailsBinding): Unit = action {
         when (choice) {
             DetailsBinding.BIND -> repository.actions.bind(checkNotNull(context), pack)
             DetailsBinding.UNLINK -> repository.actions.unlink(pack)
@@ -272,7 +279,10 @@ class AppDetailsViewModel(
             when (result) {
                 DetailsResult.FILE -> mutableState.value.copy(selectedFileId = null)
                 DetailsResult.ERROR ->
-                    mutableState.value.copy(actionError = false, actionProblem = null)
+                    mutableState.value.copy(
+                        actionError = false,
+                        actionProblem = null,
+                    )
             }
     }
 

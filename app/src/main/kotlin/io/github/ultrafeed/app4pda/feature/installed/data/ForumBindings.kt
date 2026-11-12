@@ -91,7 +91,10 @@ internal constructor(
             }
 
             ForumBindingResult.NotFound,
-            ForumBindingResult.Ambiguous -> records.sources.markBindingSearch(expected)
+            ForumBindingResult.Ambiguous ->
+                records.sources.markBindingSearch(
+                    expected,
+                )
 
             ForumBindingResult.Interrupted -> Unit
         }
@@ -129,7 +132,7 @@ internal constructor(
         }
 }
 
-private fun InstalledRecord?.matchesBinding(
+internal fun InstalledRecord?.matchesBinding(
     expected: InstalledRecord,
     foreground: Boolean,
 ) =

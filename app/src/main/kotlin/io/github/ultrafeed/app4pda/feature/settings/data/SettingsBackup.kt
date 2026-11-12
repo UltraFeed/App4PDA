@@ -138,7 +138,7 @@ internal class SettingsBackupRepository(
             validate(bytes.toString(Charsets.UTF_8), packages.scanInstalledPackages().keys)
         }
 
-    internal fun validate(text: String, installed: Set<String>): BackupImport {
+    private fun validate(text: String, installed: Set<String>): BackupImport {
         val document = json.decodeFromString(serializer<SettingsBackup>(), text)
         require(document.apps.map { it.packageName }.distinct().size == document.apps.size)
         require(document.accounts.map { it.id }.distinct().size == document.accounts.size)
@@ -155,50 +155,49 @@ internal class SettingsBackupRepository(
     private fun validateSettings(input: JsonObject): Pair<Map<String, Any>, Int> {
         var skipped = 0
         val definitions = SettingsSchema.create(context).associateBy { it.key.storageKey }
-        val values =
-            buildMap<String, Any> {
-                input.forEach { (key, element) ->
-                    val known =
-                        key in SettingsDefaults.booleans ||
-                            key in SettingsDefaults.integers ||
-                            key in SettingsDefaults.strings
-                    val rule =
-                        key.removePrefix("settings_parse_").takeIf {
-                            key.startsWith("settings_parse_") && it in settings.current.rules.names
-                        }
-                    if (!known && rule == null) {
-                        skipped++
-                        return@forEach
+        val values = buildMap {
+            input.forEach { (key, element) ->
+                val known =
+                    key in SettingsDefaults.booleans ||
+                        key in SettingsDefaults.integers ||
+                        key in SettingsDefaults.strings
+                val rule =
+                    key.removePrefix("settings_parse_").takeIf {
+                        key.startsWith("settings_parse_") && it in settings.current.rules.names
                     }
-                    val primitive = element as? JsonPrimitive ?: error("Invalid setting type")
-                    val value: Any =
-                        when {
-                            key in SettingsDefaults.booleans -> {
-                                require(!primitive.isString)
-                                requireNotNull(primitive.booleanOrNull)
-                            }
-
-                            key in SettingsDefaults.integers -> {
-                                require(!primitive.isString)
-                                requireNotNull(primitive.intOrNull)
-                            }
-
-                            else -> {
-                                require(primitive.isString)
-                                primitive.content
-                            }
-                        }
-                    val definition = definitions[key]
-                    if (definition != null) require(definition.accepts("$value"))
-                    if (key == "catalog_sorting")
-                        require(
-                            CatalogSort.entries.any {
-                                it.storageValue == value
-                            },
-                        )
-                    put(key, value)
+                if (!known && rule == null) {
+                    skipped++
+                    return@forEach
                 }
+                val primitive = element as? JsonPrimitive ?: error("Invalid setting type")
+                val value: Any =
+                    when (key) {
+                        in SettingsDefaults.booleans -> {
+                            require(!primitive.isString)
+                            requireNotNull(primitive.booleanOrNull)
+                        }
+
+                        in SettingsDefaults.integers -> {
+                            require(!primitive.isString)
+                            requireNotNull(primitive.intOrNull)
+                        }
+
+                        else -> {
+                            require(primitive.isString)
+                            primitive.content
+                        }
+                    }
+                val definition = definitions[key]
+                if (definition != null) require(definition.accepts("$value"))
+                if (key == "catalog_sorting")
+                    require(
+                        CatalogSort.entries.any {
+                            it.storageValue == value
+                        },
+                    )
+                put(key, value)
             }
+        }
 
         return values to skipped
     }

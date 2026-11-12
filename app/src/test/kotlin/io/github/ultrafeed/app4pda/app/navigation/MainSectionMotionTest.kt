@@ -1,8 +1,7 @@
 package io.github.ultrafeed.app4pda.app.navigation
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 class MainSectionMotionTest {
@@ -12,21 +11,24 @@ class MainSectionMotionTest {
             MainSection.entries.forEachIndexed { targetIndex, target ->
                 if (initial != target)
                     listOf(false, true).forEach { pop ->
-                        assertEquals(
-                            targetIndex > initialIndex,
+                        assertThat(
                             mainNavigationForward(initial, target, pop),
+                            `is`(targetIndex > initialIndex),
                         )
                     }
             }
         }
-        assertFalse(mainNavigationForward(MainSection.CATALOG, MainSection.DIGEST, false))
+        assertThat(
+            mainNavigationForward(MainSection.CATALOG, MainSection.DIGEST, pop = false),
+            `is`(false),
+        )
     }
 
     @Test
     fun nestedNavigationUsesPushAndPopWithoutChangingSectionOwnership() {
         MainSection.entries.forEach {
-            assertTrue(mainNavigationForward(it, it, false))
-            assertFalse(mainNavigationForward(it, it, true))
+            assertThat(mainNavigationForward(it, it, pop = false), `is`(true))
+            assertThat(mainNavigationForward(it, it, pop = true), `is`(false))
         }
     }
 }

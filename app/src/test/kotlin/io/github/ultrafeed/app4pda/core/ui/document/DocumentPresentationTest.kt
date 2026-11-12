@@ -1,9 +1,9 @@
 package io.github.ultrafeed.app4pda.core.ui.document
 
+import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.jsoup.Jsoup
-import org.junit.Assert
 import org.junit.Test
 
 /** Tests our generated gallery markup, not compatibility with forum HTML. */
@@ -36,7 +36,7 @@ class DocumentPresentationTest {
             ),
         )
         assertThat(
-            parsed.selectFirst("img")!!.attr("src"),
+            (parsed.selectFirst("img") ?: return).attr("src"),
             `is`(
                 "https://example.org/preview?a=1&b=2",
             ),
@@ -47,7 +47,14 @@ class DocumentPresentationTest {
                 "description",
             ),
         )
-        Assert.assertFalse(body.contains("javascript:"))
+        assertThat(
+            body,
+            CoreMatchers.not(
+                CoreMatchers.containsString(
+                    "javascript:",
+                ),
+            ),
+        )
     }
 
     @Test

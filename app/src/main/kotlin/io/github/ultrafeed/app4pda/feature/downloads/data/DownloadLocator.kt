@@ -41,7 +41,11 @@ class DownloadLocator(
                     false
                 }
             val (info, parts) =
-                ruStore.download(pack, context.resources.displayMetrics.densityDpi, !installed)
+                ruStore.download(
+                    pack,
+                    context.resources.displayMetrics.densityDpi,
+                    !installed,
+                )
             parts.mapIndexed { index, part ->
                 val apk =
                     PlayDownloadFile(

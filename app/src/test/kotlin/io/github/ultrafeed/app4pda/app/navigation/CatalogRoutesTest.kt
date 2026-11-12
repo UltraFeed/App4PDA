@@ -5,10 +5,8 @@ import io.github.ultrafeed.app4pda.feature.installed.AppSection
 import io.github.ultrafeed.app4pda.feature.settings.SettingsPage
 import kotlinx.serialization.json.Json
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CatalogRoutesTest {
@@ -42,13 +40,13 @@ class CatalogRoutesTest {
             val restored = Json.decodeFromString<AppEntry>(Json.encodeToString(entry))
             assertThat(
                 restored,
-                CoreMatchers.`is`(
+                `is`(
                     entry,
                 ),
             )
             assertThat(
                 restored.result,
-                CoreMatchers.`is`(
+                `is`(
                     entry.result,
                 ),
             )
@@ -61,7 +59,7 @@ class CatalogRoutesTest {
             AppEntry(AppDestination.Catalog(topic = 42, category = 9, name = "Games & tools/Игры"))
         assertThat(
             Json.decodeFromString<AppEntry>(Json.encodeToString(entry)),
-            CoreMatchers.`is`(
+            `is`(
                 entry,
             ),
         )
@@ -72,14 +70,14 @@ class CatalogRoutesTest {
         val search = AppDestination.Catalog(filter = "", linked = "example.package")
         assertThat(
             search.filter,
-            CoreMatchers.`is`(
+            `is`(
                 "",
             ),
         )
         assertThat(AppDestination.Catalog().filter, CoreMatchers.nullValue())
         assertThat(
             search.linked,
-            CoreMatchers.`is`(
+            `is`(
                 "example.package",
             ),
         )
@@ -93,28 +91,28 @@ class CatalogRoutesTest {
         val second = stack[2] as AppEntry
         assertThat(
             second.destination,
-            CoreMatchers.`is`(
+            `is`(
                 first.destination,
             ),
         )
         assertThat(
             second.id,
             CoreMatchers.not(
-                CoreMatchers.`is`(
+                `is`(
                     first.id,
                 ),
             ),
         )
         assertThat(
             second.callerId,
-            CoreMatchers.`is`(
+            `is`(
                 first.id,
             ),
         )
-        assertTrue(stack.pop())
+        assertThat(stack.pop(), `is`(true))
         assertThat(
             stack.last(),
-            CoreMatchers.`is`(
+            `is`(
                 first,
             ),
         )
@@ -126,7 +124,7 @@ class CatalogRoutesTest {
         val stack = mutableListOf<NavKey>(root)
         stack.push(AppDestination.Auth())
         val sender = stack.last() as AppEntry
-        assertTrue(stack.complete(sender.id, ScreenResult.AuthChanged))
+        assertThat(stack.complete(sender.id, ScreenResult.AuthChanged), `is`(true))
         assertThat(
             "Result changes do not replace the entry identity",
             stack.last(),
@@ -140,12 +138,12 @@ class CatalogRoutesTest {
         assertThat(savedStack.consumeResult("wrong-id"), CoreMatchers.nullValue())
         assertThat(
             savedStack.consumeResult(root.id),
-            CoreMatchers.`is`(
+            `is`(
                 ScreenResult.AuthChanged,
             ),
         )
         assertThat(savedStack.consumeResult(root.id), CoreMatchers.nullValue())
-        assertFalse(savedStack.pop())
+        assertThat(savedStack.pop(), `is`(false))
     }
 
     @Test
@@ -154,10 +152,10 @@ class CatalogRoutesTest {
         stack.push(AppDestination.Auth())
         val sender = stack.last() as AppEntry
         stack.push(AppDestination.Downloads)
-        Assert.assertFalse(stack.complete(sender.id, ScreenResult.AuthChanged))
+        assertThat(stack.complete(sender.id, ScreenResult.AuthChanged), `is`(false))
         stack.pop()
         stack.removeAt(0)
-        Assert.assertFalse(stack.complete(sender.id, ScreenResult.AuthChanged))
+        assertThat(stack.complete(sender.id, ScreenResult.AuthChanged), `is`(false))
         assertThat((stack.last() as AppEntry).result, CoreMatchers.nullValue())
     }
 }

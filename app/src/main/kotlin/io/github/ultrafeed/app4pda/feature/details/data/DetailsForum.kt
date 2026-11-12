@@ -36,11 +36,11 @@ class DetailsForum(
     ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val context = context.applicationContext
-    val actions = DetailsActions(installed, ioDispatcher, database.users())
+    val actions: DetailsActions = DetailsActions(installed, ioDispatcher, database.users())
 
     internal suspend fun localPackage(pack: String) = database.users().installed(pack)?.local
 
-    internal suspend fun loadAppSummary(topicId: Int, packageName: String): TopicSummary? {
+    private suspend fun loadAppSummary(topicId: Int, packageName: String): TopicSummary? {
         val row = if (topicId > 0) database.forum().snapshot(topicId) else null
         return row?.let {
             TopicSummary(

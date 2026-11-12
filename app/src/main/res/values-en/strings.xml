@@ -56,12 +56,7 @@
     <string name="format_size_mb">%1$.2f MB</string>
     <string name="format_size_gb">%1$.2f GB</string>
     <string name="format_size_tb">%1$.2f TB</string>
-    <string name="format_time_unknown">-- sec</string>
     <string name="format_time_minutes">%1$d min</string>
-    <plurals name="format_time_seconds">
-        <item quantity="one">%1$d sec</item>
-        <item quantity="other">%1$d sec</item>
-    </plurals>
     <string name="downloads_save_copy">Save to device storage</string>
     <string name="downloads_saved_copy">Copy saved. The original remains in the app cache.</string>
     <string name="downloads_cache_missing">The cached file is missing. Download it again.</string>
@@ -200,7 +195,6 @@
     <string name="settings_downloads_open_downloads_ask">Ask every time</string>
     <string name="settings_downloads_open_downloads_ext_ask">Ask each time after starting download</string>
     <string name="settings_downloads_open_downloads_not_open">Do not open</string>
-    <string name="settings_downloads_open_downloads_open">Open</string>
     <string name="settings_extended_extended_log">Extended log</string>
     <string name="settings_extended_send_log">Send log to author</string>
     <string name="settings_extended_send_log_ext">\"Extended log\" is required</string>
@@ -239,12 +233,8 @@
     <string name="forum_search_limited">The forum has limited search requests. Try again later.</string>
     <string name="use_system_accent">Use system accents</string>
     <string name="use_system_accent_summary">Device colors on Android 12 and later. Turn off to use your own accent.</string>
-    <string name="update_error_forum">Could not check forum updates</string>
-    <string name="update_error_play">Could not check Google Play updates</string>
-    <string name="update_error_operation">Could not refresh applications</string>
     <string name="open_rustore">Open in RuStore</string>
     <string name="rustore_check_updates">Check RuStore updates</string>
-    <string name="update_error_rustore">Could not check RuStore updates</string>
     <string name="digest_new_issues">New apps: number of latest issues</string>
     <string name="digest_updated_issues">Updates: number of latest issues</string>
     <string name="digest_issues_summary">The latest 1 to 6 issues. Repeated topics appear only in their newest interval.</string>
@@ -308,7 +298,6 @@
     <string name="catalog_section_540">Computer and OS emulators</string>
     <string name="self_update_check">Check for an App4PDA update</string>
     <string name="self_update_available">App4PDA %1$s is available. Download the update?</string>
-    <string name="self_update_download">Download</string>
     <string name="self_update_later">Later</string>
     <string name="self_update_current">App4PDA is up to date</string>
     <string name="self_update_failed">Could not prepare the App4PDA update</string>

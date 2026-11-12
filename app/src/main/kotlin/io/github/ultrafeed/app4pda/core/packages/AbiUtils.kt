@@ -1,12 +1,6 @@
 package io.github.ultrafeed.app4pda.core.packages
 
-import java.io.IOException
-import java.util.jar.JarFile
-import java.util.logging.Level
-import java.util.logging.Logger
-
 object AbiUtils {
-    private const val NATIVE_LIBRARY_PATH_PARTS = 3
     private const val ARM = 512
     private const val ARM_V5 = 2048
     private const val ARM_V7 = 4096
@@ -15,34 +9,6 @@ object AbiUtils {
     private const val X86_64 = 32768
     private const val MIPS = 16384
     private const val MIPS_64 = 131072
-
-    @JvmStatic
-    fun readApkAbiFlags(path: String): Int {
-        return try {
-            JarFile(path).use { archive ->
-                val architectures = ArrayList<String>()
-                for (entry in archive.entries()) {
-                    if (!entry.name.startsWith("lib/")) continue
-                    // Java String.split discards trailing empty parts.
-                    val segments = entry.name.split('/').dropLastWhile { it.isEmpty() }
-                    if (
-                        segments.size == NATIVE_LIBRARY_PATH_PARTS &&
-                            !architectures.contains(segments[1])
-                    )
-                        architectures.add(segments[1])
-                }
-                getAbiFlags(architectures.toTypedArray())
-            }
-        } catch (error: IOException) {
-            Logger.getLogger(AbiUtils::class.java.name)
-                .log(
-                    Level.WARNING,
-                    "Cannot inspect native libraries in APK",
-                    error,
-                )
-            0
-        }
-    }
 
     @JvmStatic
     fun getAbiFlags(architectures: Array<out String?>): Int {

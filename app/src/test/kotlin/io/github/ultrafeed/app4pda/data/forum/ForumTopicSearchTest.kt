@@ -1,12 +1,10 @@
 package io.github.ultrafeed.app4pda.data.forum
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.jsoup.nodes.Document
-import org.junit.Assert
 import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ForumTopicSearchTest {
@@ -18,19 +16,19 @@ class ForumTopicSearchTest {
                 .queryParameter("source")
         assertThat(
             source("com.google.android.apps.docs"),
-            CoreMatchers.`is`(
+            `is`(
                 "all",
             ),
         )
         assertThat(
             source("Google Drive"),
-            CoreMatchers.`is`(
+            `is`(
                 "top",
             ),
         )
         assertThat(
             source("Авито"),
-            CoreMatchers.`is`(
+            `is`(
                 "top",
             ),
         )
@@ -39,22 +37,24 @@ class ForumTopicSearchTest {
     @Test
     fun cyrillicUsesTheActualWindows1251FormEncodingIncludingContinuation() {
         val url = ForumTopicSearch.url("Авито", ForumSearchSort.RELEVANCE)
-        Assert.assertTrue(url.contains("query=%C0%E2%E8%F2%EE&"))
+        assertThat(url.contains("query=%C0%E2%E8%F2%EE&"), `is`(true))
         assertThat(
             ForumTopicSearch.query(url),
-            CoreMatchers.`is`(
+            `is`(
                 "Авито",
             ),
         )
         val next = "<a href=\"${url.replace("&", "&amp;")}&amp;st=50\">2</a>"
         val page = ForumTopicSearch.parse(sections + next, url)
         assertThat(
-            ForumTopicSearch.query(page.nextUrl!!),
-            CoreMatchers.`is`(
+            ForumTopicSearch.query(
+                page.nextUrl ?: return,
+            ),
+            `is`(
                 "Авито",
             ),
         )
-        assertTrue(page.nextUrl.endsWith("st=50"))
+        assertThat(page.nextUrl.endsWith("st=50"), `is`(true))
     }
 
     @Test
@@ -69,7 +69,7 @@ class ForumTopicSearchTest {
             }
         assertThat(
             error.statusCode,
-            CoreMatchers.`is`(
+            `is`(
                 429,
             ),
         )
@@ -112,9 +112,10 @@ class ForumTopicSearchTest {
                 sections + row + next,
                 ForumTopicSearch.url("Google", ForumSearchSort.RELEVANCE),
             )
-        assertTrue(result.topics.isEmpty())
-        assertTrue(
+        assertThat(result.topics.isEmpty(), `is`(true))
+        assertThat(
             (result.nextUrl ?: error("Required test value is missing")).endsWith("st=50"),
+            `is`(true),
         )
     }
 
@@ -130,7 +131,7 @@ class ForumTopicSearchTest {
             )
         assertThat(
             result.topics.map { it.id },
-            CoreMatchers.`is`(
+            `is`(
                 listOf(
                     1,
                     2,
@@ -138,6 +139,6 @@ class ForumTopicSearchTest {
                 ),
             ),
         )
-        assertTrue(result.topics.last().mixedSection)
+        assertThat(result.topics.last().mixedSection, `is`(true))
     }
 }

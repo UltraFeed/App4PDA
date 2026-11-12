@@ -67,22 +67,42 @@ fun ForumPostScreen(
                 if (state.post != null) content(state.post, Modifier.fillMaxWidth())
                 if (state.loading && state.post == null) AppLoadingIndicator()
                 if (problem != null && state.post == null)
-                    AppErrorCard(problem, onRetry = onRetry, onDismiss = onClose)
+                    AppErrorCard(
+                        problem,
+                        onRetry = onRetry,
+                        onDismiss = onClose,
+                    )
             }
             if (problem != null && state.post != null)
                 AppErrorCard(
                     problem.copy(
                         description =
-                            stringResource(R.string.forum_cached_check_failed, problem.description),
+                            stringResource(
+                                R.string.forum_cached_check_failed,
+                                problem.description,
+                            ),
                     ),
                     onRetry = onRetry,
                 )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                if (problem?.forumPaused != true)
-                    TextButton(onOpenForum) { Text(stringResource(R.string.menu_open_forum)) }
-                if (problem == null || state.post != null)
-                    TextButton(onClose) { Text(stringResource(R.string.action_close)) }
-            }
+            ForumPostActions(
+                showForum = problem?.forumPaused != true,
+                showClose = problem == null || state.post != null,
+                onOpenForum = onOpenForum,
+                onClose = onClose,
+            )
         }
+    }
+}
+
+@Composable
+private fun ForumPostActions(
+    showForum: Boolean,
+    showClose: Boolean,
+    onOpenForum: () -> Unit,
+    onClose: () -> Unit,
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        if (showForum) TextButton(onOpenForum) { Text(stringResource(R.string.menu_open_forum)) }
+        if (showClose) TextButton(onClose) { Text(stringResource(R.string.action_close)) }
     }
 }

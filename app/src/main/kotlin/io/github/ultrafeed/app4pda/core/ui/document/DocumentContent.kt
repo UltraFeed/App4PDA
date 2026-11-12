@@ -107,7 +107,9 @@ private fun ColumnScope.DocumentWebView(
                     report = { view, id, height ->
                         view.post {
                             if (fitContent && view.isAttachedToWindow && id == currentDocumentId)
-                                updateHeight(height)
+                                updateHeight(
+                                    height,
+                                )
                         }
                     },
                     gesture = { view, id, exclusive ->
@@ -181,9 +183,12 @@ private class DocumentBridge(
     private val report: (String, Int) -> Unit,
     private val gesture: (String, Boolean) -> Unit,
 ) {
+    // Called by the local document script through the AppDocument bridge.
+    @Suppress("unused")
     @JavascriptInterface
     fun horizontalGesture(documentId: String, exclusive: Boolean) = gesture(documentId, exclusive)
 
+    @Suppress("unused")
     @JavascriptInterface
     fun reportHeight(documentId: String, height: Int) {
         if (height > 0) report(documentId, height)
@@ -204,15 +209,15 @@ private fun page(
     <script nonce="app-document">
     var lastTouch=null;
     document.addEventListener("touchstart",function(e){var node=e.target.closest(".app-gallery,table,pre,.post-block.code");AppDocument.horizontalGesture(${
-        JSONObject.quote(
-            documentId,
-        )
-    },e.touches.length>1||!!(node&&node.scrollWidth>node.clientWidth));},{passive:true});
+    JSONObject.quote(
+        documentId,
+    )
+},e.touches.length>1||!!(node&&node.scrollWidth>node.clientWidth));},{passive:true});
     ["touchend","touchcancel"].forEach(function(name){document.addEventListener(name,function(){AppDocument.horizontalGesture(${
-        JSONObject.quote(
-            documentId,
-        )
-    },false);},{passive:true});});
+    JSONObject.quote(
+        documentId,
+    )
+},false);},{passive:true});});
     document.addEventListener('touchend',function(e){var t=e.changedTouches[0];if(t)lastTouch={x:t.clientX,y:t.clientY,at:performance.now()};},true);
     document.addEventListener('touchcancel',function(){lastTouch=null;},true);
     function actualHit(element,event){
@@ -222,10 +227,10 @@ private fun page(
     document.addEventListener('click',function(e){var link=e.target.closest('a');if(link&&!actualHit(link,e)){e.preventDefault();e.stopPropagation();}},true);
     document.querySelectorAll('.spoil > .block-title').forEach(function(title){
       if(!title.textContent.trim())title.appendChild(document.createTextNode(${
-        JSONObject.quote(
-            spoilerLabel,
-        )
-    }));
+    JSONObject.quote(
+        spoilerLabel,
+    )
+}));
       title.setAttribute('role','button');title.tabIndex=0;
       function toggle(){title.parentElement.classList.toggle('close');title.setAttribute('aria-expanded',!title.parentElement.classList.contains('close'));}
       title.setAttribute('aria-expanded',!title.parentElement.classList.contains('close'));
@@ -240,10 +245,10 @@ private fun page(
       function reportHeight(){
         var height=Math.max(1,Math.ceil(document.body.getBoundingClientRect().height));
         if(height!==measuredHeight){measuredHeight=height;AppDocument.reportHeight(${
-        JSONObject.quote(
-            documentId,
-        )
-    },height);}
+    JSONObject.quote(
+        documentId,
+    )
+},height);}
       }
       new ResizeObserver(reportHeight).observe(document.body);
       reportHeight();
@@ -275,18 +280,18 @@ private fun documentStyle(
         h1,h2,h3,.block-title {font-weight:500}
         .post-block,blockquote,pre {margin:12px 0;border-radius:20px}
         .post-block.quote,blockquote {background:${hex(colors.surfaceContainer)};padding:12px 16px;border-left:3px solid ${
-            hex(
-                colors.outlineVariant,
-            )
-        }}
+        hex(
+            colors.outlineVariant,
+        )
+    }}
         .post-block.code,pre {background:${hex(colors.surfaceContainerHigh)};padding:12px}
         pre,.code .block-body {white-space:pre;overflow-x:auto;font-family:monospace}
         .post-block.spoil {padding:0;background:transparent}
         .spoil > .block-title,summary {display:table;max-width:100%;padding:10px 18px;border-radius:24px;background:${
-            hex(
-                colors.secondaryContainer,
-            )
-        };color:${hex(colors.onSecondaryContainer)};cursor:pointer;font-style:normal}
+        hex(
+            colors.secondaryContainer,
+        )
+    };color:${hex(colors.onSecondaryContainer)};cursor:pointer;font-style:normal}
         .spoil > .block-title:before {content:'▾';margin-right:8px}
         .spoil.close > .block-title:before {content:'▸'}
         .spoil > .block-body {padding:12px 0}
@@ -401,6 +406,7 @@ private fun documentNavigation(
             if (index != null && index in gallery.indices) onImages(gallery, index)
             true
         }
+
         "$url".substringBefore('#') == BASE && url.fragment != null -> false
         else -> {
             onLink("$url")
@@ -435,7 +441,9 @@ private fun DocumentView.displayDocument(
     } else {
         evaluateJavascript(
             "(function(){var theme=document.getElementById('app-theme');if(theme)theme.textContent=" +
-                JSONObject.quote(style.css) +
+                JSONObject.quote(
+                    style.css,
+                ) +
                 ";})()",
             null,
         )

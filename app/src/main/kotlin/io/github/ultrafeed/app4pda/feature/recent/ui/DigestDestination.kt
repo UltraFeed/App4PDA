@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -58,6 +57,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
@@ -82,7 +82,7 @@ class DigestViewModel(
 ) : ViewModel() {
     private val mutableState =
         MutableStateFlow(DigestState(kind = saved.get<DigestKind>("kind") ?: DigestKind.UPDATED))
-    val state = mutableState.asStateFlow()
+    val state: StateFlow<DigestState> = mutableState.asStateFlow()
     private var refreshJob: Job? = null
     private val dismissed = mutableSetOf<String>()
 
@@ -94,7 +94,11 @@ class DigestViewModel(
     private fun failed(failure: Throwable) {
         Log.w("ForumDigest", "Digest operation failed", failure)
         if ("${failure.javaClass.name}:${failure.message}" !in dismissed)
-            mutableState.update { it.copy(error = failure) }
+            mutableState.update {
+                it.copy(
+                    error = failure,
+                )
+            }
     }
 
     init {
@@ -230,7 +234,10 @@ fun DigestScreen(
                 },
                 if (state.kind == DigestKind.UPDATED) 0 else 1,
                 modifier =
-                    Modifier.padding(horizontal = AppLayout.content, vertical = AppLayout.itemGap),
+                    Modifier.padding(
+                        horizontal = AppLayout.content,
+                        vertical = AppLayout.itemGap,
+                    ),
             ) { index ->
                 scope.launch {
                     if (animationsEnabled) pager.animateScrollToPage(index)

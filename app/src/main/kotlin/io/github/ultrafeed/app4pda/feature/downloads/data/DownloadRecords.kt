@@ -116,7 +116,7 @@ internal object TransferStatus {
     const val INTEGRITY_FAILURE = 1
 }
 
-private fun Status.recordStatus(): Int =
+internal fun Status.recordStatus(): Int =
     when (this) {
         Status.SUCCESS -> TransferStatus.COMPLETE
         Status.FAILED -> TransferStatus.FAILED

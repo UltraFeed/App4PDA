@@ -15,7 +15,7 @@ data class DigestPage(
 /** Headings are forum data; introductory posts without a publication period are ignored. */
 object ForumDigestParser {
     private const val TOPIC_ID = 127361
-    const val URL = "https://4pda.to/forum/lofiversion/index.php?t$TOPIC_ID.html"
+    const val URL: String = "https://4pda.to/forum/lofiversion/index.php?t$TOPIC_ID.html"
     private val period =
         Regex("\\d{1,2}\\s+\\p{L}+\\s+\\d{4}\\s*[-–—]\\s*\\d{1,2}\\s+\\p{L}+\\s+\\d{4}")
 
@@ -50,7 +50,14 @@ private class DigestPost(private val periodPattern: Regex) {
         }
         return DigestSnapshot(
             groups =
-                entries.map { (key, rows) -> DigestGroup(key.first, key.second, key.third, rows) },
+                entries.map { (key, rows) ->
+                    DigestGroup(
+                        key.first,
+                        key.second,
+                        key.third,
+                        rows,
+                    )
+                },
             issues = sections.map { (range, kinds) -> DigestIssue(range, kinds) },
         )
     }
@@ -64,8 +71,12 @@ private class DigestPost(private val periodPattern: Regex) {
                 category = ""
                 sections.getOrPut(period) { mutableSetOf() }
             }
-            text.startsWith("Новые программы, ранее не публиковавшиеся", true) ->
-                section(DigestKind.NEW)
+
+            text.startsWith(
+                "Новые программы, ранее не публиковавшиеся",
+                true,
+            ) -> section(DigestKind.NEW)
+
             text.startsWith("Обновление ранее опубликованных", true) -> section(DigestKind.UPDATED)
             node.tagName() == "strong" && text.isNotBlank() && kind != null -> category = text
         }

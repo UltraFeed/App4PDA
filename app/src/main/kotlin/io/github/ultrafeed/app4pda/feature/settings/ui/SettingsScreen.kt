@@ -23,7 +23,6 @@ import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +54,6 @@ import io.github.ultrafeed.app4pda.feature.settings.SettingItem
 import io.github.ultrafeed.app4pda.feature.settings.SettingKind
 import io.github.ultrafeed.app4pda.feature.settings.SettingsPage
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
@@ -172,7 +170,6 @@ private fun SettingsValueDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SettingsRow(
     settings: List<SettingItem>,

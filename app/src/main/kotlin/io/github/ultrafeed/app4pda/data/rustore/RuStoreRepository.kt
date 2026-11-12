@@ -17,6 +17,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -28,7 +29,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.Callback
@@ -73,7 +73,11 @@ private data class DownloadRequest(
 )
 
 class RuStoreUnavailable : IOException("RuStore: application unavailable"), HttpStatusFailure {
-    override val httpStatus = 404
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+
+    override val httpStatus: Int = 404
 }
 
 /** Public package API; no forum credentials, borrowed signatures or custom TLS trust. */
@@ -270,7 +274,7 @@ class RuStoreRepository(
     suspend fun cacheSize(): Long =
         withContext(ioDispatcher) { database.users().ruStoreCacheBytes() }
 
-    suspend fun clearCache() =
+    suspend fun clearCache(): Unit =
         withContext(ioDispatcher) {
             cacheOperations.withLock {
                 cacheGeneration++
@@ -283,7 +287,7 @@ class RuStoreRepository(
     private suspend fun request(builder: Request.Builder): String = requests.withLock {
         val retryAt = settings.ruStoreRetryAt()
         if (retryAt > now()) throw SourceRateLimited(retryAt)
-        delay((nextRequestAt - SystemClock.elapsedRealtime()).coerceAtLeast(0))
+        delay((nextRequestAt - SystemClock.elapsedRealtime()).coerceAtLeast(0).milliseconds)
         currentCoroutineContext().ensureActive()
         nextRequestAt = SystemClock.elapsedRealtime() + AppPolicy.RUSTORE_REQUEST_INTERVAL_MILLIS
         try {
@@ -349,7 +353,7 @@ class RuStoreRepository(
             )
         }
 
-    private fun rateLimit(response: Response): SourceRateLimited {
+    internal fun rateLimit(response: Response): SourceRateLimited {
         val receivedAt = now()
         val duration =
             retryAfterMillis(response.header("Retry-After"), receivedAt)?.takeIf { it > 0 }

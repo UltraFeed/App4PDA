@@ -35,7 +35,7 @@ internal object SettingsSchema {
         }
 }
 
-private fun Context.rootSettings(): List<SettingItem> =
+internal fun Context.rootSettings(): List<SettingItem> =
     listOf(
             SettingId.UI to SettingsPage.APPEARANCE,
             SettingId.ACCOUNTS to SettingsPage.ACCOUNTS,
@@ -80,7 +80,7 @@ private fun Context.sortingSetting() =
             },
     )
 
-private fun Context.appearanceSettings(): List<SettingItem> =
+internal fun Context.appearanceSettings(): List<SettingItem> =
     listOf(
         SettingItem(
             SettingId.LAUNCHER_ICON,
@@ -141,7 +141,7 @@ private fun Context.appearanceSettings(): List<SettingItem> =
         sortingSetting(),
     )
 
-private fun Context.sourcesSettings(): List<SettingItem> =
+internal fun Context.sourcesSettings(): List<SettingItem> =
     listOf(
         SettingItem(
             SettingId.GOOGLE_PLAY_CHECK_VER,
@@ -196,7 +196,7 @@ private fun Context.sourcesSettings(): List<SettingItem> =
         ),
     )
 
-private fun Context.cacheSettings(): List<SettingItem> {
+internal fun Context.cacheSettings(): List<SettingItem> {
     val limits =
         ImageCacheSettings.LIMITS_MIB.map { limit ->
             SettingOption(
@@ -237,7 +237,7 @@ private fun Context.cacheSettings(): List<SettingItem> {
     )
 }
 
-private fun Context.backupSettings(): List<SettingItem> =
+internal fun Context.backupSettings(): List<SettingItem> =
     listOf(
         SettingItem(
             SettingId.EXPORT_BACKUP,
@@ -255,7 +255,7 @@ private fun Context.backupSettings(): List<SettingItem> =
         ),
     )
 
-private fun Context.notificationsSettings(): List<SettingItem> =
+internal fun Context.notificationsSettings(): List<SettingItem> =
     listOf(
         SettingItem(
             SettingId.NOTIFY_ENABLE,
@@ -272,7 +272,7 @@ private fun Context.notificationsSettings(): List<SettingItem> =
         ),
     )
 
-private fun Context.downloadsSettings(): List<SettingItem> =
+internal fun Context.downloadsSettings(): List<SettingItem> =
     listOf(
         SettingItem(
             SettingId.OPEN_DOWNLOADS,
@@ -292,7 +292,7 @@ private fun Context.downloadsSettings(): List<SettingItem> =
         ),
     )
 
-private fun Context.advancedSettings(): List<SettingItem> =
+internal fun Context.advancedSettings(): List<SettingItem> =
     listOf(
         SettingItem(
             SettingId.EXTENDED_LOG,

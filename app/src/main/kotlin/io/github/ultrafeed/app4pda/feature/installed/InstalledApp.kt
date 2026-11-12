@@ -1,6 +1,5 @@
 package io.github.ultrafeed.app4pda.feature.installed
 
-import io.github.ultrafeed.app4pda.R
 import io.github.ultrafeed.app4pda.core.formatting.VersionComparator
 import io.github.ultrafeed.app4pda.core.network.SourceProblem
 import io.github.ultrafeed.app4pda.core.packages.LocalPackage
@@ -70,7 +69,7 @@ class InstalledApp(
         playDiscovery: SourceDiscovery = this.playDiscovery,
         ruStore: MarketRelease? = this.ruStore,
         ruStoreDiscovery: SourceDiscovery = this.ruStoreDiscovery,
-    ) =
+    ): InstalledApp =
         InstalledApp(
             packageName,
             local,
@@ -138,12 +137,12 @@ enum class AppSection {
     HIDDEN,
 }
 
-enum class UpdateSource(val errorMessage: Int) {
-    OPERATION(R.string.update_error_operation),
-    PACKAGES(R.string.update_error_operation),
-    FORUM(R.string.update_error_forum),
-    MARKET(R.string.update_error_play),
-    RUSTORE(R.string.update_error_rustore),
+enum class UpdateSource {
+    OPERATION,
+    PACKAGES,
+    FORUM,
+    MARKET,
+    RUSTORE,
 }
 
 data class InstalledAppsState(

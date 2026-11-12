@@ -1,11 +1,8 @@
 package io.github.ultrafeed.app4pda.feature.installed
 
 import io.github.ultrafeed.app4pda.core.packages.LocalPackage
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SourceVisibilityTest {
@@ -25,28 +22,33 @@ class SourceVisibilityTest {
 
     @Test
     fun unknownIsNotAbsence() {
-        MatcherAssert.assertThat(
+        assertThat(
             SourceDiscovery().checkedAt,
-            CoreMatchers.`is`(
+            `is`(
                 0L,
             ),
         )
-        assertFalse(app(SourceDiscovery(false, 1), SourceDiscovery()).hidden)
+        assertThat(app(SourceDiscovery(checkedAt = 1), SourceDiscovery()).hidden, `is`(false))
     }
 
     @Test
     fun missingSourcesNeverChangeVisibility() {
-        assertFalse(app(SourceDiscovery(false, 1), SourceDiscovery(false, 1)).hidden)
-        assertFalse(app(SourceDiscovery(true, 1), SourceDiscovery(false, 1)).hidden)
+        assertThat(
+            app(SourceDiscovery(checkedAt = 1), SourceDiscovery(checkedAt = 1)).hidden,
+            `is`(false),
+        )
+        assertThat(
+            app(SourceDiscovery(true, 1), SourceDiscovery(checkedAt = 1)).hidden,
+            `is`(false),
+        )
     }
 
     @Test
     fun storedVisibilitySurvivesSourceChanges() {
-        assertFalse(
-            app(SourceDiscovery(false, 1), SourceDiscovery(false, 1), false).hidden,
+        assertThat(
+            app(SourceDiscovery(checkedAt = 1), SourceDiscovery(checkedAt = 1)).hidden,
+            `is`(false),
         )
-        assertTrue(
-            app(SourceDiscovery(true, 1), SourceDiscovery(true, 1), true).hidden,
-        )
+        assertThat(app(SourceDiscovery(true, 1), SourceDiscovery(true, 1), true).hidden, `is`(true))
     }
 }

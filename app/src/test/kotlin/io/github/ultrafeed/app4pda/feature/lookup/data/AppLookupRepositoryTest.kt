@@ -7,13 +7,12 @@ import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
 
 class AppLookupRepositoryTest {
     @Test
-    fun mapsOnlyAConfirmedSourceMatch() = runTest {
+    fun mapsOnlyAConfirmedSourceMatch(): Unit = runTest {
         val source = ForumPackageLookup { pack ->
             if (pack == "org.example")
                 ForumInfo(
@@ -56,15 +55,13 @@ class AppLookupRepositoryTest {
     }
 
     @Test
-    fun sourceFailureIsNotAnEmptySuccessfulLookup() = runTest {
+    fun sourceFailureIsNotAnEmptySuccessfulLookup(): Unit = runTest {
         try {
-            AppLookupRepository(
-                    ForumPackageLookup {
-                        throw IOException(
-                            "Offline",
-                        )
-                    },
-                )
+            AppLookupRepository {
+                    throw IOException(
+                        "Offline",
+                    )
+                }
                 .find(
                     "org.example",
                 )

@@ -63,7 +63,9 @@ sealed interface ForumPostLink {
             val attachment = isForumHost(address.host) && path.startsWith("/forum/dl/post/")
             return when {
                 listOf(".png", ".jpg", ".jpeg", ".gif", ".webp").any(path::endsWith) ->
-                    Image(normalized)
+                    Image(
+                        normalized,
+                    )
 
                 attachment || isFileLink(path) -> Attachment(normalized)
                 else ->
@@ -73,14 +75,15 @@ sealed interface ForumPostLink {
                             ?.toIntOrNull()
                             ?.takeIf { it > 0 && isForumHost(address.host) }
                             ?.let(::Topic)
-                        ?: External(normalized)
+                        ?: External(
+                            normalized,
+                        )
             }
         }
 
         private fun isFileLink(path: String): Boolean {
-            val extension = path.substringAfterLast('.', "")
             // These file formats are not present in every Android version's MIME registry.
-            return when (extension) {
+            return when (val extension = path.substringAfterLast('.', "")) {
                 "apk",
                 "rar",
                 "7z" -> true

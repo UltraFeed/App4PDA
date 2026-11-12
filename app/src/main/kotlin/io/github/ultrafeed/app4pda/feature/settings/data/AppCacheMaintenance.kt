@@ -55,7 +55,7 @@ class AppCacheMaintenance(
                 }
         }
 
-    suspend fun clear() = cleanup.withLock {
+    suspend fun clear(): Unit = cleanup.withLock {
         val failures = mutableListOf<Exception>()
         suspend fun attempt(owner: String, action: suspend () -> Unit) {
             val started = SystemClock.elapsedRealtime()
@@ -75,7 +75,7 @@ class AppCacheMaintenance(
             } finally {
                 Log.d(
                     "CacheClear",
-                    "$owner completed after ${android.os.SystemClock.elapsedRealtime() - started}ms",
+                    "$owner completed after ${SystemClock.elapsedRealtime() - started}ms",
                 )
             }
         }

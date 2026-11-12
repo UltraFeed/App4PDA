@@ -72,7 +72,9 @@ class UpdateWorker(
         try {
             val groups = digest.load(userInitiated = false)
             for (topic in groups.flatMap { it.entries }.map { it.topicId }.distinct()) digest
-                .preview(topic)
+                .preview(
+                    topic,
+                )
             Result.success()
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -105,7 +107,9 @@ object UpdateSchedule {
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val request =
             PeriodicWorkRequestBuilder<UpdateWorker>(minutes, TimeUnit.MINUTES)
-                .setConstraints(constraints)
+                .setConstraints(
+                    constraints,
+                )
                 .setBackoffCriteria(
                     BackoffPolicy.EXPONENTIAL,
                     AppPolicy.UPDATE_BACKOFF_MINUTES,
@@ -140,7 +144,7 @@ object UpdateSchedule {
 
 object LocalUpdateNotifications {
     private val lock = Mutex()
-    const val ID = 21590
+    const val ID: Int = 21590
     private const val CHANNEL = "local-updates"
     private const val SUMMARY_APPS = 3
     private const val SUMMARY_CHARACTERS = 512
@@ -151,7 +155,7 @@ object LocalUpdateNotifications {
         apps: List<InstalledApp>,
         settings: SettingsValues,
         dao: UpdateNotificationDao,
-    ) = lock.withLock {
+    ): Unit = lock.withLock {
         if (!settings.getBoolean("notify_enable")) return@withLock
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&

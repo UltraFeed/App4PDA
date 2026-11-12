@@ -24,7 +24,10 @@ class ManifestPackageReceiver : BroadcastReceiver(), KoinComponent {
         if (intent.data?.schemeSpecificPart == context.packageName) return
         if (
             intent.action == Intent.ACTION_PACKAGE_REMOVED &&
-                intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                intent.getBooleanExtra(
+                    Intent.EXTRA_REPLACING,
+                    false,
+                )
         )
             return
         val pending = goAsync()

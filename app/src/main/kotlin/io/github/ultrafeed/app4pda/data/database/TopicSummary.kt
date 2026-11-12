@@ -11,7 +11,7 @@ data class TopicSummary(
     private val forumUpdatedAt: Long = 0,
     val favorite: Boolean = false,
 ) {
-    fun withForumInfo(info: ForumInfo) =
+    fun withForumInfo(info: ForumInfo): TopicSummary =
         copy(
             packageName = packageName.ifBlank { info.getPrimaryPackageName().orEmpty() },
             name = info.name.ifBlank { name },

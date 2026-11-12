@@ -3,8 +3,8 @@ package io.github.ultrafeed.app4pda.core.formatting
 /** Numeric and prerelease comparison used by forum versions, including alternative releases. */
 object VersionComparator {
     private const val EQUAL_OR_UNKNOWN = 0
-    const val INSTALLED_NEWER = 1
-    const val AVAILABLE_NEWER = 2
+    const val INSTALLED_NEWER: Int = 1
+    const val AVAILABLE_NEWER: Int = 2
 
     @JvmStatic
     fun compare(installed: String?, available: String?): Int {

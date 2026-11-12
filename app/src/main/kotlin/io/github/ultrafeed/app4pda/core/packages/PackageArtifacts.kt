@@ -81,10 +81,10 @@ internal constructor(
                 sourceDir = path
                 publicSourceDir = path
                 "${
-                    loadLabel(
-                        packageManager,
-                    )
-                }"
+            loadLabel(
+                packageManager,
+            )
+        }"
             }
             .orEmpty()
 
@@ -103,7 +103,7 @@ internal constructor(
             }
         else info.signatures
 
-    fun getInstalledSignatures(packageName: String): Array<Signature>? =
+    private fun getInstalledSignatures(packageName: String): Array<Signature>? =
         installedPackage(packageName, signatureQueryFlags)?.let(::getSignatures)
 
     fun hasSameInstalledSignatures(packageName: String, signatures: Array<Signature>?): Boolean {

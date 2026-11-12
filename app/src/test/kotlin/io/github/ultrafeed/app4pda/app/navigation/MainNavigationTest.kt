@@ -2,21 +2,19 @@ package io.github.ultrafeed.app4pda.app.navigation
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
 import io.github.ultrafeed.app4pda.feature.installed.AppSection
 import io.github.ultrafeed.app4pda.feature.settings.SettingsPage
 import kotlinx.serialization.json.Json
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MainNavigationTest {
     private fun navigation() =
         MainNavigation(
             mutableStateOf(MainSection.HOME),
-            MainSection.entries.associateWith { NavBackStack<NavKey>(AppEntry(it.root)) },
+            MainSection.entries.associateWith { NavBackStack(AppEntry(it.root)) },
         )
 
     @Test
@@ -24,7 +22,7 @@ class MainNavigationTest {
         val nav = navigation()
         assertThat(
             MainSection.entries.map { it.name },
-            CoreMatchers.`is`(
+            `is`(
                 listOf(
                     "HOME",
                     "DIGEST",
@@ -36,7 +34,7 @@ class MainNavigationTest {
         )
         assertThat(
             nav.stacks.values.map { (it.first() as AppEntry).id }.toSet().size,
-            CoreMatchers.`is`(
+            `is`(
                 5,
             ),
         )
@@ -73,7 +71,7 @@ class MainNavigationTest {
         )
         assertThat(
             nav.stack.size,
-            CoreMatchers.`is`(
+            `is`(
                 1,
             ),
         )
@@ -101,30 +99,30 @@ class MainNavigationTest {
             ),
         )
         nav.open(AppDestination.Auth())
-        assertTrue(nav.back())
+        assertThat(nav.back(), `is`(true))
         assertThat(
             nav.current.destination,
-            CoreMatchers.`is`(
+            `is`(
                 AppDestination.Settings(
                     SettingsPage.ACCOUNTS,
                 ),
             ),
         )
-        assertTrue(nav.back())
+        assertThat(nav.back(), `is`(true))
         assertThat(
             nav.current.destination,
-            CoreMatchers.`is`(
+            `is`(
                 AppDestination.Settings(),
             ),
         )
-        assertTrue(nav.back())
+        assertThat(nav.back(), `is`(true))
         assertThat(
             nav.current.destination,
-            CoreMatchers.`is`(
+            `is`(
                 AppDestination.Home,
             ),
         )
-        assertFalse(nav.back())
+        assertThat(nav.back(), `is`(false))
     }
 
     @Test
@@ -133,7 +131,7 @@ class MainNavigationTest {
         nav.open(AppDestination.Catalog(filter = "Авито"))
         assertThat(
             nav.selected,
-            CoreMatchers.`is`(
+            `is`(
                 MainSection.CATALOG,
             ),
         )
@@ -147,13 +145,13 @@ class MainNavigationTest {
         nav.open(AppDestination.Catalog(filter = "Calendar", linked = "example.calendar"))
         assertThat(
             nav.selected,
-            CoreMatchers.`is`(
+            `is`(
                 MainSection.SETTINGS,
             ),
         )
         assertThat(
             nav.current.callerId,
-            CoreMatchers.`is`(
+            `is`(
                 caller.id,
             ),
         )
@@ -165,13 +163,13 @@ class MainNavigationTest {
         nav.external(AppDestination.Details(42, null))
         assertThat(
             nav.selected,
-            CoreMatchers.`is`(
+            `is`(
                 MainSection.CATALOG,
             ),
         )
         assertThat(
             nav.current.destination,
-            CoreMatchers.`is`(
+            `is`(
                 AppDestination.Details(
                     42,
                     null,
@@ -189,13 +187,13 @@ class MainNavigationTest {
         )
         assertThat(
             nav.stack.size,
-            CoreMatchers.`is`(
+            `is`(
                 1,
             ),
         )
         assertThat(
             nav.stacks.getValue(MainSection.CATALOG).size,
-            CoreMatchers.`is`(
+            `is`(
                 2,
             ),
         )
@@ -211,7 +209,7 @@ class MainNavigationTest {
         assertThat(
             nav.current.id,
             CoreMatchers.not(
-                CoreMatchers.`is`(
+                `is`(
                     first.id,
                 ),
             ),
@@ -225,7 +223,7 @@ class MainNavigationTest {
         nav.open(AppDestination.Post(42, 12, "Post"))
         val caller = nav.current
         nav.open(AppDestination.Attachment(42, "https://example.org/file.zip"))
-        assertTrue(nav.stack.complete(nav.current.id, ScreenResult.DownloadStarted))
+        assertThat(nav.stack.complete(nav.current.id, ScreenResult.DownloadStarted), `is`(true))
         val original = nav.stacks.mapValues { (_, entries) -> entries.map { it as AppEntry } }
         val restored =
             Json.decodeFromString<Map<MainSection, List<AppEntry>>>(Json.encodeToString(original))
@@ -233,18 +231,18 @@ class MainNavigationTest {
             MainNavigation(
                 mutableStateOf(nav.selected),
                 restored.mapValues { (_, entries) ->
-                    NavBackStack<NavKey>(*entries.toTypedArray())
+                    NavBackStack(*entries.toTypedArray())
                 },
             )
         assertThat(
             copy.current.id,
-            CoreMatchers.`is`(
+            `is`(
                 caller.id,
             ),
         )
         assertThat(
             copy.stack.consumeResult(caller.id),
-            CoreMatchers.`is`(
+            `is`(
                 ScreenResult.DownloadStarted,
             ),
         )
@@ -255,7 +253,7 @@ class MainNavigationTest {
         copy.select(MainSection.CATALOG)
         assertThat(
             copy.stack.size,
-            CoreMatchers.`is`(
+            `is`(
                 1,
             ),
         )
@@ -268,7 +266,7 @@ class MainNavigationTest {
         nav.open(AppDestination.Attachment(42, "https://example.org/file.zip"))
         val sender = nav.current
         nav.stack.removeAt(1)
-        assertTrue(nav.stack.complete(sender.id, ScreenResult.DownloadStarted))
+        assertThat(nav.stack.complete(sender.id, ScreenResult.DownloadStarted), `is`(true))
         assertThat(
             nav.current.result,
             CoreMatchers.nullValue(),

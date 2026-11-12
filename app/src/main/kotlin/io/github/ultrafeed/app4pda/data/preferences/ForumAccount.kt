@@ -20,5 +20,5 @@ class ForumAccount(
             now - profileCheckedAt in 0 until AppPolicy.CACHE_TTL_MILLIS
     }
 
-    override fun toString() = "ForumAccount(id=$id, searchAvailableAt=$searchAvailableAt)"
+    override fun toString(): String = "ForumAccount(id=$id, searchAvailableAt=$searchAvailableAt)"
 }

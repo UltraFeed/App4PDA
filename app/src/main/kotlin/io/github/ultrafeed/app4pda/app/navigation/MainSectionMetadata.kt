@@ -11,5 +11,8 @@ internal fun mainNavigationForward(
     pop: Boolean,
 ): Boolean =
     if (initial != null && target != null && initial != target)
-        MainSection.entries.indexOf(target) > MainSection.entries.indexOf(initial)
+        MainSection.entries.indexOf(target) >
+            MainSection.entries.indexOf(
+                initial,
+            )
     else !pop

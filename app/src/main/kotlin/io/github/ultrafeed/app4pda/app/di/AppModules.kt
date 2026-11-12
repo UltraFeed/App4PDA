@@ -153,8 +153,9 @@ internal val dataModule = module {
             ForumTransports(
                 get(named("forumPages")),
                 get(),
-                { NetworkUtils.isNetworkConnected(androidContext()) },
-            ),
+            ) {
+                NetworkUtils.isNetworkConnected(androidContext())
+            },
         )
     }
     single { AnonymousPlaySessionProvider(androidContext(), get()) }

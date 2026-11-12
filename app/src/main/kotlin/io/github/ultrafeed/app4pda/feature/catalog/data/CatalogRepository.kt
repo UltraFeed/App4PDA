@@ -89,7 +89,7 @@ class CatalogRepository(
     }
 }
 
-private fun CatalogQuery.request() =
+internal fun CatalogQuery.request() =
     ForumCatalogRequest(
         groupId,
         search,

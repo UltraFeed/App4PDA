@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -73,7 +71,12 @@ internal fun rememberAppEntries(
                         key = screen,
                         contentKey = screen.id,
                         metadata =
-                            metadata { put(MainSectionMetadata, section) } +
+                            metadata {
+                                put(
+                                    MainSectionMetadata,
+                                    section,
+                                )
+                            } +
                                 (if (screen.destination.isDialog) DialogSceneStrategy.dialog()
                                 else emptyMap()),
                     ) { rawEntry ->
@@ -104,9 +107,8 @@ private fun AppNavigationEntry(
     backInProgress: Boolean,
     onBackFinished: () -> Unit,
 ) {
-    val original = screen
     val visibleEntry = navigation.current
-    val entry = visibleEntry.takeIf { it.id == original.id } ?: original
+    val entry = visibleEntry.takeIf { it.id == screen.id } ?: screen
     val entryTransition = LocalNavAnimatedContentScope.current.transition
     LaunchedEffect(visibleEntry.id, backInProgress) {
         if (visibleEntry.id == entry.id && backInProgress) {
@@ -141,7 +143,12 @@ private fun AppNavigationEntry(
         }
         val result: (ScreenResult) -> Unit = completion@{
             if (navigation.current.id != entry.id) return@completion
-            if (!stack.complete(entry.id, it) && (stack.lastOrNull() as? AppEntry)?.id == entry.id)
+            if (
+                !stack.complete(
+                    entry.id,
+                    it,
+                ) && (stack.lastOrNull() as? AppEntry)?.id == entry.id
+            )
                 back()
         }
         val replace: (AppDestination) -> Unit = { target ->
@@ -168,10 +175,24 @@ private fun AppDestinationContent(
     when (val destination = entry.destination) {
         AppDestination.Home,
         is AppDestination.Apps ->
-            InstalledDestination(activity, entry, open, back, destination == AppDestination.Home)
+            InstalledDestination(
+                activity,
+                entry,
+                open,
+                back,
+                destination == AppDestination.Home,
+            )
+
         AppDestination.Empty -> ScreenFrame(back, "") {}
         AppDestination.Categories,
-        is AppDestination.Catalog -> CatalogDestination(activity, entry, open, back)
+        is AppDestination.Catalog ->
+            CatalogDestination(
+                activity,
+                entry,
+                open,
+                back,
+            )
+
         is AppDestination.Details -> DetailsDestination(activity, entry, open, back)
         AppDestination.Downloads -> DownloadsDestination(activity, back)
         AppDestination.Digest -> DigestDestination(open, back)

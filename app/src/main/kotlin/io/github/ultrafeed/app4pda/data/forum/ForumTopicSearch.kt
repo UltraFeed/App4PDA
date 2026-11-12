@@ -79,9 +79,14 @@ object ForumTopicSearch {
                 .filter {
                     it.host == ForumUrls.HOST &&
                         it.encodedPath == "/forum/index.php" &&
-                        it.queryParameter("act").equals("search", true) &&
+                        it.queryParameter(
+                                "act",
+                            )
+                            .equals("search", true) &&
                         it.queryParameter("result") == "topics" &&
-                        query("$it") ==
+                        query(
+                            "$it",
+                        ) ==
                             query(
                                 "$current",
                             ) &&

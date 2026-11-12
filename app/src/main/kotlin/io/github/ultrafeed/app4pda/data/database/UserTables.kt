@@ -32,9 +32,15 @@ data class InstalledRecord(
 
 data class InstalledSnapshot(
     @Embedded val app: InstalledRecord,
-    @Relation(parentColumn = "packageName", entityColumn = "packageName")
+    @Relation(
+        parentColumn = "packageName",
+        entityColumn = "packageName",
+    )
     val play: PlayCacheRecord?,
-    @Relation(parentColumn = "packageName", entityColumn = "packageName")
+    @Relation(
+        parentColumn = "packageName",
+        entityColumn = "packageName",
+    )
     val ruStore: RuStoreCacheRecord?,
 ) {
     fun toApp(showPlay: Boolean, showRuStore: Boolean = true): InstalledApp =

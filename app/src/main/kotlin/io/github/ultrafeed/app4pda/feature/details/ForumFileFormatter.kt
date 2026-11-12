@@ -19,7 +19,13 @@ object ForumFileFormatter {
         if (file.version.isNotBlank()) line(R.string.info_version, file.version)
         line(R.string.info_size, file.displaySize)
         if (file.downloadCount.isNotBlank())
-            append(context.getString(R.string.downloads_count, file.downloadCount)).append("\n")
+            append(
+                    context.getString(
+                        R.string.downloads_count,
+                        file.downloadCount,
+                    ),
+                )
+                .append("\n")
         line(R.string.info_package_name, file.packageName)
         if (file.minSdk > 0)
             line(
@@ -39,7 +45,10 @@ object ForumFileFormatter {
                 )
                 .append('\n')
         if (file.hasSignatureStatus(0))
-            append(context.getString(R.string.downloads_signature_no_match)).append('\n')
+            append(context.getString(R.string.downloads_signature_no_match))
+                .append(
+                    '\n',
+                )
         if (
             !file.supportsAbi(
                 AbiUtils.getAbiFlags(
@@ -49,7 +58,10 @@ object ForumFileFormatter {
         )
             append(context.getString(R.string.downloads_architecture_no_match)).append('\n')
         if (file.minSdk > Build.VERSION.SDK_INT)
-            append(context.getString(R.string.downloads_sdk_wrong)).append('\n')
+            append(context.getString(R.string.downloads_sdk_wrong))
+                .append(
+                    '\n',
+                )
     }
         .trim()
 }

@@ -1,24 +1,18 @@
 package io.github.ultrafeed.app4pda.feature.installed.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
@@ -32,11 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -48,19 +40,11 @@ import io.github.ultrafeed.app4pda.core.ui.components.AppLoadingIndicator
 import io.github.ultrafeed.app4pda.core.ui.components.ConfirmActionDialog
 import io.github.ultrafeed.app4pda.core.ui.components.SwitchChoiceItem
 import io.github.ultrafeed.app4pda.core.ui.theme.AppLayout
-import io.github.ultrafeed.app4pda.core.ui.theme.LocalAppAnimations
 import io.github.ultrafeed.app4pda.feature.installed.AppSection
 import io.github.ultrafeed.app4pda.feature.installed.InstalledAction
 import io.github.ultrafeed.app4pda.feature.installed.InstalledApp
 import io.github.ultrafeed.app4pda.feature.installed.InstalledCardAppearance
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.launch
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
-)
 @Composable
 fun InstalledAppsScreen(
     ui: InstalledAppsUiState,
@@ -83,8 +67,6 @@ fun InstalledAppsScreen(
     val current = ui.source.apps.find { it.key == menuKey }
     val positions = rememberSaveableStateHolder()
     val pager = rememberInstalledPager(tabs, ui.section, onSection)
-    val pagerScope = rememberCoroutineScope()
-    val animationsEnabled = LocalAppAnimations.current
     fun action(app: InstalledApp, operation: InstalledAction) {
         menuKey = app.key
         if (operation == InstalledAction.UNINSTALL) {
@@ -96,35 +78,36 @@ fun InstalledAppsScreen(
     }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxSize()) {
-            InstalledSections(ui, tabs) { index ->
-                pagerScope.launch {
-                    if (animationsEnabled) pager.animateScrollToPage(index)
-                    else pager.scrollToPage(index)
-                }
-            }
+            InstalledPagerSelector(ui, tabs, pager)
             if (searchVisible && !home)
-                InstalledSearch(ui.query, onQuery, onCatalogSearch) { searchVisible = false }
-            InstalledErrors(ui, onRefresh, onDismissErrors)
-            val pageContent: @Composable (AppSection) -> Unit = { pageSection ->
-                positions.SaveableStateProvider("${pageSection}:${ui.sorting.storageValue}") {
-                    InstalledPage(
-                        ui,
-                        pageSection,
-                        home,
-                        cardAppearance,
-                        onOpen,
-                        { menuKey = it },
-                        onRefresh,
-                    )
+                InstalledSearch(
+                    ui.query,
+                    onQuery,
+                    onCatalogSearch,
+                ) {
+                    searchVisible = false
                 }
+            InstalledErrors(ui, onRefresh, onDismissErrors)
+            InstalledPages(ui, tabs, pager, positions, Modifier.weight(1f)) { pageSection ->
+                InstalledPage(
+                    ui,
+                    pageSection,
+                    home,
+                    cardAppearance,
+                    onOpen,
+                    { menuKey = it },
+                    onRefresh,
+                )
             }
-            if (tabs.isNotEmpty())
-                HorizontalPager(pager, Modifier.weight(1f)) { page -> pageContent(tabs[page]) }
-            else pageContent(ui.section)
         }
     }
     if (current != null && confirmation == null)
-        InstalledAppMenu(current, ui.actionBusy, { action(current, it) }, { menuKey = null })
+        InstalledAppMenu(
+            current,
+            ui.actionBusy,
+            { action(current, it) },
+            { menuKey = null },
+        )
     confirmation?.let { operation ->
         InstalledActionConfirmation(
             current,
@@ -190,7 +173,11 @@ private fun InstalledAppMenu(
                     )
                 }
                 if (current.installed && current.userChoicesEditable)
-                    InstalledSourceSwitches(current, busy, onAction)
+                    InstalledSourceSwitches(
+                        current,
+                        busy,
+                        onAction,
+                    )
             }
         },
         confirmButton = {
@@ -219,7 +206,6 @@ private fun InstalledCheckProgress(ui: InstalledAppsUiState) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InstalledPage(
     ui: InstalledAppsUiState,
@@ -243,7 +229,11 @@ private fun InstalledPage(
             verticalArrangement = Arrangement.spacedBy(AppLayout.itemGap),
         ) {
             if (ui.source.loading && !(home && ui.source.userRefreshing))
-                item(key = "updateProgress") { InstalledCheckProgress(ui) }
+                item(key = "updateProgress") {
+                    InstalledCheckProgress(
+                        ui,
+                    )
+                }
             val pageRows =
                 if (pageSection == ui.section) ui.rows
                 else
@@ -279,35 +269,6 @@ private fun InstalledPage(
             list,
         )
     else list()
-}
-
-@Composable
-private fun rememberInstalledPager(
-    tabs: List<AppSection>,
-    section: AppSection,
-    onSection: (AppSection) -> Unit,
-): PagerState {
-    val pager =
-        rememberPagerState(initialPage = tabs.indexOf(section).coerceAtLeast(0)) {
-            tabs.size.coerceAtLeast(1)
-        }
-    LaunchedEffect(tabs, section) {
-        if (tabs.isNotEmpty()) {
-            val index = tabs.indexOf(section)
-            if (index < 0) onSection(AppSection.APPLICATIONS)
-            else if (!pager.isScrollInProgress && pager.currentPage != index)
-                pager.scrollToPage(index)
-        }
-    }
-    LaunchedEffect(pager, tabs, section) {
-        snapshotFlow { pager.settledPage }
-            .drop(1)
-            .distinctUntilChanged()
-            .collect { page ->
-                tabs.getOrNull(page)?.let(onSection)
-            }
-    }
-    return pager
 }
 
 @Composable
@@ -352,7 +313,12 @@ private fun InstalledMenuActions(
                 InstalledAction.SYSTEM_INFO to stringResource(R.string.installed_system_info),
             )
             if (current.userChoicesEditable && current.local?.system != true)
-                add(InstalledAction.UNINSTALL to stringResource(R.string.menu_uninstall))
+                add(
+                    InstalledAction.UNINSTALL to
+                        stringResource(
+                            R.string.menu_uninstall,
+                        ),
+                )
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)) {

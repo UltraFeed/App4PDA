@@ -31,7 +31,9 @@ internal suspend fun HttpClient.readForumResponse(
     repeat(maxRedirects + 1) { followed ->
         currentCoroutineContext().ensureActive()
         if (!visited.add(current.newBuilder().fragment(null).build().toString()))
-            throw IOException("Forum redirect loop")
+            throw IOException(
+                "Forum redirect loop",
+            )
         val response = readForumHop(current, original, method, headers, onResponse)
         currentCoroutineContext().ensureActive()
         val location = response.headers["Location"]

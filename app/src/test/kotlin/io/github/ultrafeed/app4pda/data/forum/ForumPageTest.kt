@@ -2,7 +2,6 @@ package io.github.ultrafeed.app4pda.data.forum
 
 import java.time.Instant
 import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
@@ -19,7 +18,7 @@ class ForumPageTest {
               <div id="post-main-2">Message</div></div>
             """
                 .trimIndent()
-        MatcherAssert.assertThat(
+        assertThat(
             ForumPage.parse(html, 1).createdAt(),
             CoreMatchers.`is`(
                 Instant.parse(
@@ -28,7 +27,7 @@ class ForumPageTest {
                     .toEpochMilli(),
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             ForumPage.parse(html, 2).createdAt(),
             CoreMatchers.`is`(
                 Instant.parse(
@@ -37,7 +36,7 @@ class ForumPageTest {
                     .toEpochMilli(),
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             ForumPage.parse(html.replace("<time datetime=\"2026-10-01T12:00:00Z\"></time>", ""), 1)
                 .createdAt(),
             CoreMatchers.nullValue(),
@@ -57,7 +56,7 @@ class ForumPageTest {
                 """
                     .trimIndent(),
             )
-        MatcherAssert.assertThat(
+        assertThat(
             ForumPackageNames.extract(page.post),
             CoreMatchers.`is`(
                 listOf(

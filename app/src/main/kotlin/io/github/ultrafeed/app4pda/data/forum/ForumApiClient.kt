@@ -46,10 +46,14 @@ class ForumApiException(
     val searchQuota: Boolean = false,
     val retryAt: Long? = null,
 ) : IOException(message, cause), HttpStatusFailure {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+
     val topicMissing: Boolean
         get() = reason == ForumFailure.HTTP && statusCode == HttpStatusCode.NotFound.value
 
-    override val httpStatus
+    override val httpStatus: Int?
         get() = statusCode
 }
 
@@ -74,7 +78,11 @@ private data class FilteredTopic(
     val parsedPage: ForumPage? = null,
 )
 
-private class ForumSearchSessionChanged : IOException()
+private class ForumSearchSessionChanged : IOException() {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+}
 
 /**
  * Shared cancellable transport. Only application context and immutable request snapshots are
@@ -234,7 +242,10 @@ internal constructor(
                     settings.accounts.postponeSearch(
                         snapshot.session.userId,
                         System.currentTimeMillis() +
-                            maxOf(failure.retryAfterMillis ?: 0, SEARCH_COOLDOWN_MILLIS),
+                            maxOf(
+                                failure.retryAfterMillis ?: 0,
+                                SEARCH_COOLDOWN_MILLIS,
+                            ),
                     )
                 }
             }
@@ -264,7 +275,10 @@ internal constructor(
 
                 else -> rules.rules["forum_url_show_topic"].replace("%topic_id%", "$topicId")
             }
-        val response = readForumPage(url, true, rules, userInitiated = userInitiated)
+        val response =
+            transports.requests.execute(userInitiated) {
+                readForumPageResponse(url, topic = true, snapshot = rules, validators = emptyMap())
+            }
         var resolvedPost = postId
         if (resolvedPost == -1)
             Regex(rules.rules["post_id_from_url"]).find(response.url.toString())?.let {
@@ -295,17 +309,6 @@ internal constructor(
             )
         }
     }
-
-    private suspend fun readForumPage(
-        url: String,
-        topic: Boolean,
-        snapshot: SettingsValues = settings.current,
-        validators: Map<String, String> = emptyMap(),
-        userInitiated: Boolean = true,
-    ): ForumHttpResponse =
-        transports.requests.execute(userInitiated) {
-            readForumPageResponse(url, topic, snapshot, validators)
-        }
 
     private suspend fun readForumPageResponse(
         url: String,
@@ -342,7 +345,10 @@ internal constructor(
 
     private fun decodePage(response: ForumHttpResponse): String {
         val charset =
-            Regex("charset=([a-z\\d\\-]*)", RegexOption.IGNORE_CASE)
+            Regex(
+                    "charset=([a-z\\d\\-]*)",
+                    RegexOption.IGNORE_CASE,
+                )
                 .find(response.headers["Content-Type"].orEmpty())
                 ?.groupValues
                 ?.get(1)
@@ -352,19 +358,27 @@ internal constructor(
     }
 }
 
-private fun validateSearchUrl(url: String, query: String, section: Int) {
+internal fun validateSearchUrl(url: String, query: String, section: Int) {
     val target = url.toHttpUrl()
     require(
         target.host == ForumUrls.HOST &&
             target.encodedPath == "/forum/index.php" &&
-            target.queryParameter("act").equals("search", true) &&
+            target
+                .queryParameter(
+                    "act",
+                )
+                .equals("search", true) &&
             target.queryParameter("forums")?.split(',')?.mapNotNull(String::toIntOrNull)?.toSet() ==
                 ForumSections.scope(section) &&
-            ForumTopicSearch.query(url) == ForumSections.searchQuery(query, section),
+            ForumTopicSearch.query(url) ==
+                ForumSections.searchQuery(
+                    query,
+                    section,
+                ),
     )
 }
 
-private fun requireSearchSession(
+internal fun requireSearchSession(
     snapshot: SettingsValues,
     current: SettingsValues,
 ) {
@@ -385,7 +399,7 @@ private fun requireSearchSession(
     }
 }
 
-private suspend fun HttpClient.fetchForumResponse(
+internal suspend fun HttpClient.fetchForumResponse(
     url: String,
     headers: Map<String, String>,
     onResponse: (ForumHttpResponse, Boolean) -> Unit,

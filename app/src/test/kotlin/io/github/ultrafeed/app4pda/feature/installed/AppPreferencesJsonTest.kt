@@ -6,33 +6,33 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AppPreferencesJsonTest {
     @Test
     fun defaultsAreOmittedAndEveryModelFieldRoundTrips() {
-        assertTrue(AppPreferencesJson.differences(AppPreferences()).isEmpty())
+        assertThat(AppPreferencesJson.differences(AppPreferences()).isEmpty(), `is`(true))
         val complete = Json { encodeDefaults = true }
         val defaults =
-            complete.encodeToJsonElement(AppPreferences.serializer(), AppPreferences())
-                as JsonObject
+            complete.encodeToJsonElement(
+                AppPreferences.serializer(),
+                AppPreferences(),
+            ) as JsonObject
         for (key in defaults.keys) {
             val patch = buildJsonObject { put(key, true) }
             val value = AppPreferencesJson.merge(AppPreferences(), patch)
-            MatcherAssert.assertThat(
+            assertThat(
                 AppPreferencesJson.differences(value),
-                CoreMatchers.`is`(
+                `is`(
                     patch,
                 ),
             )
-            MatcherAssert.assertThat(
+            assertThat(
                 AppPreferencesJson.knownFields(patch),
-                CoreMatchers.`is`(
+                `is`(
                     patch,
                 ),
             )
@@ -46,17 +46,17 @@ class AppPreferencesJsonTest {
             put("ignoreForum", true)
             put("visibility", "AUTO")
         }
-        MatcherAssert.assertThat(
+        assertThat(
             AppPreferencesJson.merge(before, patch),
-            CoreMatchers.`is`(
+            `is`(
                 before.copy(
                     ignoreForum = true,
                 ),
             ),
         )
-        MatcherAssert.assertThat(
+        assertThat(
             AppPreferencesJson.knownFields(patch),
-            CoreMatchers.`is`(
+            `is`(
                 buildJsonObject {
                     put(
                         "ignoreForum",
@@ -66,9 +66,9 @@ class AppPreferencesJsonTest {
             ),
         )
         val unhide = buildJsonObject { put("hidden", false) }
-        MatcherAssert.assertThat(
+        assertThat(
             AppPreferencesJson.merge(before, unhide),
-            CoreMatchers.`is`(
+            `is`(
                 before.copy(
                     hidden = false,
                 ),
@@ -79,7 +79,12 @@ class AppPreferencesJsonTest {
     @Test
     fun knownFieldsRejectWrongTypesBeforeAnyWrite() {
         for (value in
-            listOf(JsonPrimitive("true"), JsonPrimitive(1), JsonNull, JsonObject(emptyMap()))) {
+            listOf(
+                JsonPrimitive("true"),
+                JsonPrimitive(1),
+                JsonNull,
+                JsonObject(emptyMap()),
+            )) {
             assertThrows(IllegalArgumentException::class.java) {
                 AppPreferencesJson.knownFields(buildJsonObject { put("hidden", value) })
             }

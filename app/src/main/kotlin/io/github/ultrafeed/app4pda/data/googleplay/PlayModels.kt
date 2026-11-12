@@ -54,20 +54,48 @@ data class MarketBatch(
 )
 
 sealed class PlaySourceException(message: String) : IOException(message) {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+
     class NotFound : PlaySourceException("Application not found"), HttpStatusFailure {
-        override val httpStatus = 404
+        private companion object {
+            private const val serialVersionUID = 1L
+        }
+
+        override val httpStatus: Int = 404
     }
 
-    class Authentication : PlaySourceException("Anonymous Google Play session expired")
+    class Authentication : PlaySourceException("Anonymous Google Play session expired") {
+        private companion object {
+            private const val serialVersionUID = 1L
+        }
+    }
 
-    class RateLimited(val retryAt: Long) :
+    class RateLimited :
         PlaySourceException("Google Play rate limit; retry later"), HttpStatusFailure {
-        override val httpStatus = 429
+        private companion object {
+            private const val serialVersionUID = 1L
+        }
+
+        override val httpStatus: Int = 429
     }
 
-    class Unavailable(message: String) : PlaySourceException(message)
+    class Unavailable(message: String) : PlaySourceException(message) {
+        private companion object {
+            private const val serialVersionUID = 1L
+        }
+    }
 
-    class Restricted : PlaySourceException("Application is unavailable for this device or region")
+    class Restricted : PlaySourceException("Application is unavailable for this device or region") {
+        private companion object {
+            private const val serialVersionUID = 1L
+        }
+    }
 
-    class Paid : PlaySourceException("Anonymous download is available only for free applications")
+    class Paid : PlaySourceException("Anonymous download is available only for free applications") {
+        private companion object {
+            private const val serialVersionUID = 1L
+        }
+    }
 }

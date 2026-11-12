@@ -124,17 +124,18 @@ internal class AnonymousPlaySessionProvider(context: Context, http: PlayHttpClie
             val phone = context.getSystemService(TelephonyManager::class.java)
             property("CellOperator", phone?.networkOperator.orEmpty().ifBlank { NO_OPERATOR })
             property("SimOperator", phone?.simOperator.orEmpty().ifBlank { NO_OPERATOR })
-            property("Locales", locale.toString())
+            property("Locales", "$locale")
         }
 }
 
-private fun Properties.setDeviceProperty(name: String, value: Any?) {
+internal fun Properties.setDeviceProperty(name: String, value: Any?) {
     setProperty(name, value?.toString().orEmpty())
 }
 
 private class LocalizedPlayClient(engine: HttpEngine, profile: DeviceProfile, locale: Locale) {
     private val sessions = DefaultPlaySessions(engine, profile, locale)
     val client = PlayClient(engine, sessions)
+
     @Volatile
     var generation = 0
         private set

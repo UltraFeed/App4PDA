@@ -3,7 +3,6 @@ package io.github.ultrafeed.app4pda.feature.gallery
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ScreenshotInfoTest {
@@ -41,7 +40,7 @@ class ScreenshotInfoTest {
     @Test
     fun excludedImageKeepsItsDataWithoutParcelableOrUiState() {
         val image = ScreenshotInfo("preview", "full", true)
-        assertTrue(image.excludedFromGallery)
+        assertThat(image.excludedFromGallery, `is`(true))
         assertThat(
             image.copy(),
             `is`(

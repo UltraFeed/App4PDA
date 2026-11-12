@@ -42,7 +42,7 @@ internal class InstalledUserChoices(
             if (hidden) it.hide()
             else
                 it.copy(
-                    preferences = it.preferences.copy(hidden = hidden),
+                    preferences = it.preferences.copy(hidden = false),
                     bindingRevision = it.bindingRevision + 1,
                 )
         }
@@ -60,20 +60,6 @@ internal class InstalledUserChoices(
 
     suspend fun setRuStoreUpdatesIgnored(key: String?, ignored: Boolean) =
         change(key) { it.copy(preferences = it.preferences.copy(ignoreRuStore = ignored)) }
-
-    suspend fun setFavorite(key: String?, favorite: Boolean): Boolean =
-        withContext(ioDispatcher) {
-            database.withTransaction {
-                val old = key?.let { users.installed(it) } ?: return@withTransaction false
-                if (!old.toApp().userChoicesEditable) return@withTransaction false
-                if (old.forum.topicId > 0) saveFavorite(old.toApp(), favorite)
-                else {
-                    val updated = old.copy(preferences = old.preferences.copy(favorite = favorite))
-                    if (updated != old) users.saveInstalled(updated)
-                }
-                true
-            }
-        }
 
     suspend fun favoriteMetadata(
         summary: TopicSummary,

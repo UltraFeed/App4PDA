@@ -96,7 +96,7 @@ private fun OfferUpdate(release: GitHubRelease, download: () -> Unit, dismiss: (
         text = { Text(stringResource(R.string.self_update_available, release.version)) },
         confirmButton = {
             TextButton(onClick = download) {
-                Text(stringResource(R.string.self_update_download))
+                Text(stringResource(R.string.action_download))
             }
         },
         dismissButton = {

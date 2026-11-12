@@ -42,6 +42,4 @@ object AppLinks {
                 if (url.host == "apps.rustore.ru") listOf("app") else listOf("catalog", "app")
             url.pathSegments.lastOrNull().takeIf { url.pathSegments.dropLast(1) == prefix }
         }
-
-    fun packageFromUrl(url: String): String? = storeFromUrl(url)?.packageName
 }

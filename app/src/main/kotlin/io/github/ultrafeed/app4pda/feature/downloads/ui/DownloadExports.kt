@@ -51,7 +51,9 @@ internal fun rememberInstallPermission(
                 (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
                     activity.packageManager.canRequestPackageInstalls())
         )
-            onOpen(path)
+            onOpen(
+                path,
+            )
     }
 
 @Composable

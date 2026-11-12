@@ -56,12 +56,12 @@ enum class SectionIcon {
 }
 
 object ForumSections {
-    const val APPLICATIONS = 212
+    const val APPLICATIONS: Int = 212
 
     fun titleResource(id: Int): Int? =
         all.firstOrNull { it.id == id }?.titleResource?.takeIf { it != 0 }
 
-    val all =
+    val all: List<ForumSection> =
         listOf(
             ForumSection(APPLICATIONS, 0, R.string.catalog_section_212, SectionIcon.APPS),
             ForumSection(320, 212, R.string.catalog_section_320, SectionIcon.SECURITY),
@@ -142,7 +142,7 @@ object ForumSections {
     val androidOnlyIds: Set<Int> =
         all.filter { it.androidOnly }.flatMapTo(linkedSetOf()) { it.forums }
 
-    fun section(id: Int) = all.first { it.id == id }
+    fun section(id: Int): ForumSection = all.first { it.id == id }
 
     fun searchQuery(query: String, id: Int): String {
         val keyword = all.firstOrNull { it.id == id }?.keyword ?: return query
@@ -157,5 +157,5 @@ object ForumSections {
         }
     }
 
-    fun children(parent: Int) = all.filter { it.parent == parent }
+    fun children(parent: Int): List<ForumSection> = all.filter { it.parent == parent }
 }

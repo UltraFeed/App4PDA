@@ -36,9 +36,9 @@ import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.util.Locale
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
@@ -55,7 +55,11 @@ internal class ForumAuthResponse(
 )
 
 /** A rejection message parsed from the forum, rather than an internal exception description. */
-internal class ForumAuthRejected(message: String) : IllegalArgumentException(message)
+internal class ForumAuthRejected(message: String) : IllegalArgumentException(message) {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+}
 
 internal fun interface ForumAuthTransport {
     suspend fun execute(request: HttpRequestBuilder): ForumAuthResponse
@@ -150,7 +154,7 @@ internal constructor(
                     )
                     ?.let { url ->
                         url.toHttpUrlOrNull()?.queryParameter("showuser")
-                    } == accountId.toString()
+                    } == "$accountId"
             }
         if (!ownProfile) throw IOException("Profile is not authenticated")
         val emailInput =
@@ -213,7 +217,7 @@ internal constructor(
             requests.execute(true) {
                 transport.execute(request(rules.rules["login_url"])).also(::validateResponse)
             }
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         forumAccessEvent(
             context,
             "captcha-form",
@@ -222,7 +226,9 @@ internal constructor(
         )
         validateResponse(response)
         if (response.code !in HttpStatusCode.OK.value until HttpStatusCode.MultipleChoices.value)
-            throw IOException("HTTP ${response.code}")
+            throw IOException(
+                "HTTP ${response.code}",
+            )
         val scoped =
             response.cookies
                 .mapNotNull { Cookie.parse(rules.rules["login_url"].toHttpUrl(), it) }
@@ -230,7 +236,7 @@ internal constructor(
         return parseCaptcha(response.html, cookieHeader(response.cookies), rules, scoped)
     }
 
-    internal fun parseCaptcha(
+    private fun parseCaptcha(
         html: String,
         cookies: String,
         rules: SettingsValues = settings.current,
@@ -241,9 +247,8 @@ internal constructor(
                 ForumFailure.VERIFICATION_REQUIRED,
                 context.getString(R.string.forum_verification_required),
             )
-        val normalized = html
         val block =
-            Regex(rules.rules["login_form_captcha_div"]).find(normalized)?.groupValues?.get(1)
+            Regex(rules.rules["login_form_captcha_div"]).find(html)?.groupValues?.get(1)
                 ?: run {
                     val form =
                         Jsoup.parse(html).select("form").firstOrNull {
@@ -270,7 +275,7 @@ internal constructor(
         return ForumCaptcha(ForumUrls.normalize(image), time, signature, cookies, imageCookies)
     }
 
-    internal fun loginRequest(
+    private fun loginRequest(
         username: String,
         password: String,
         hidden: Boolean,
@@ -315,10 +320,12 @@ internal constructor(
                     .execute(loginRequest(username, password, hidden, answer, captcha, rules))
                     .also(::validateResponse)
             }
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         validateResponse(response)
         if (response.code !in HttpStatusCode.OK.value until HttpStatusCode.BadRequest.value)
-            throw IOException("HTTP ${response.code}")
+            throw IOException(
+                "HTTP ${response.code}",
+            )
         val cookies = cookieHeader(response.cookies)
         if (userId(cookies) <= 0) {
             val message =
@@ -337,7 +344,7 @@ internal constructor(
             }
             throw ForumAuthRejected(safeMessage)
         }
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         return cookies
     }
 

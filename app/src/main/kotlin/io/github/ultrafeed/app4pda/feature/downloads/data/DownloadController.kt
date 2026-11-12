@@ -2,6 +2,7 @@ package io.github.ultrafeed.app4pda.feature.downloads.data
 
 import android.content.Context
 import androidx.core.net.toUri
+import com.ketch.DownloadModel
 import com.ketch.Ketch
 import com.ketch.Status
 import io.github.ultrafeed.app4pda.data.database.DownloadRecord
@@ -17,7 +18,7 @@ import io.github.ultrafeed.app4pda.feature.downloads.TransferTarget
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -31,7 +32,7 @@ class DownloadController(
     internal val locator: DownloadLocator,
     private val engine: Ketch,
 ) : AutoCloseable {
-    val submissions = DownloadSubmissions(this, locator, ioDispatcher)
+    val submissions: DownloadSubmissions = DownloadSubmissions(this, locator, ioDispatcher)
 
     private val lock = Mutex()
     internal val records =
@@ -155,7 +156,7 @@ class DownloadController(
         version: Long,
         delivery: List<PlayDownloadFile>,
         source: String = "play",
-    ) =
+    ): Unit =
         withContext(ioDispatcher) {
             val single =
                 delivery.singleOrNull()?.takeIf {
@@ -187,7 +188,7 @@ class DownloadController(
             groups.submit(group, delivery)
         }
 
-    val events
+    val events: Flow<List<DownloadModel>>
         get() = engine.observeDownloads()
 
     suspend fun active(): List<ActiveDownload> =
@@ -199,9 +200,16 @@ class DownloadController(
                 tasks
                     .filter {
                         it.id !in members &&
-                            File(it.path).parentFile != File(storage.directory, ".play") &&
-                            (it.status !in setOf(Status.SUCCESS, Status.CANCELLED) ||
-                                it.metaData in failed)
+                            File(it.path).parentFile !=
+                                File(
+                                    storage.directory,
+                                    ".play",
+                                ) &&
+                            (it.status !in
+                                setOf(
+                                    Status.SUCCESS,
+                                    Status.CANCELLED,
+                                ) || it.metaData in failed)
                     }
                     .map {
                         it.toTransfer().let { transfer ->
@@ -217,11 +225,17 @@ class DownloadController(
     suspend fun command(
         target: TransferTarget,
         command: TransferCommand,
-    ) =
+    ): Unit =
         withContext(ioDispatcher) {
             when (target) {
                 is TransferTarget.Group ->
-                    withContext(ioDispatcher) { groups.command(target.path, command) }
+                    withContext(ioDispatcher) {
+                        groups.command(
+                            target.path,
+                            command,
+                        )
+                    }
+
                 is TransferTarget.Single -> singleCommand(target.id, command)
             }
         }

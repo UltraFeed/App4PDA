@@ -18,7 +18,9 @@ internal enum class MainSection(val root: AppDestination) {
     HOME(AppDestination.Home),
     DIGEST(AppDestination.Digest),
     CATALOG(AppDestination.Categories),
-    DOWNLOADS(AppDestination.Downloads),
+    DOWNLOADS(
+        AppDestination.Downloads,
+    ),
     SETTINGS(AppDestination.Settings());
 
     companion object {
@@ -48,7 +50,7 @@ internal class MainNavigation(
 
     private val reselections = mutableStateMapOf<MainSection, Long>()
 
-    fun reselection(section: MainSection): Long = reselections[section] ?: 0L
+    private fun reselection(section: MainSection): Long = reselections[section] ?: 0L
 
     fun reselection(entry: AppEntry, root: AppEntry): Long =
         if (entry.id == root.id) reselection(MainSection.forExternal(root.destination)) else 0L
@@ -58,9 +60,6 @@ internal class MainNavigation(
 
     val current: AppEntry
         get() = stack.last() as AppEntry
-
-    val atRoot: Boolean
-        get() = stack.size == 1
 
     fun select(section: MainSection) {
         if (selected == section) {

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 /** Completed files are outside disposable cache; Android owns staging transfers. */
 class DownloadsStorage(context: Context) {
     private val context = context.applicationContext
-    val directory =
+    val directory: File =
         File(
             requireNotNull(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)),
             "completed",

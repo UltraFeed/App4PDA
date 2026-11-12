@@ -45,7 +45,10 @@ object ForumTopicIcon {
                 .filter {
                     it.tagName() == "img" &&
                         (it.hasClass("linked-image") ||
-                            (it.hasClass("ipb-attach") && it.hasClass("attach-img"))) &&
+                            (it.hasClass("ipb-attach") &&
+                                it.hasClass(
+                                    "attach-img",
+                                ))) &&
                         it.closest(".post-block") == null
                 }
                 .mapNotNull { imageUrl(it) }

@@ -79,7 +79,9 @@ class ReportActivity : ComponentActivity() {
             handler.postDelayed(
                 expire,
                 (it.createdAt + AppPolicy.CACHE_TTL_MILLIS - System.currentTimeMillis())
-                    .coerceAtLeast(1),
+                    .coerceAtLeast(
+                        1,
+                    ),
             )
         }
         return report
@@ -182,7 +184,7 @@ class ReportActivity : ComponentActivity() {
     }
 
     companion object {
-        const val REPORT_ID = "crash_report_id"
+        const val REPORT_ID: String = "crash_report_id"
     }
 }
 

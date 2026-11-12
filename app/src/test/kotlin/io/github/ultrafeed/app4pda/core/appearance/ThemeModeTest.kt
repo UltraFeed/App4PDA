@@ -2,8 +2,6 @@ package io.github.ultrafeed.app4pda.core.appearance
 
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ThemeModeTest {
@@ -38,8 +36,8 @@ class ThemeModeTest {
                     systemDark,
                 ),
             )
-            Assert.assertFalse(ThemeMode.LIGHT.isDark(systemDark))
-            assertTrue(ThemeMode.DARK.isDark(systemDark))
+            assertThat(ThemeMode.LIGHT.isDark(systemDark), `is`(false))
+            assertThat(ThemeMode.DARK.isDark(systemDark), `is`(true))
         }
     }
 }

@@ -277,7 +277,7 @@ internal class DeliveryTransfers(
     }
 }
 
-private fun deliveryStatus(
+internal fun deliveryStatus(
     control: DeliveryState?,
     members: List<DownloadModel>,
     integrityFailure: Boolean,

@@ -1,9 +1,9 @@
 package io.github.ultrafeed.app4pda.feature.recent.data
 
 import io.github.ultrafeed.app4pda.data.forum.ForumTopicPreview
-import org.junit.Assert.assertEquals
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DigestCoverageTest {
@@ -48,24 +48,54 @@ class DigestCoverageTest {
                             groups = snapshot().groups.reversed(),
                         ),
                 )
-        assertEquals(setOf(issues.first().period), selected.groups.map { it.period }.toSet())
-        assertEquals(3, selected.issues.size)
-        assertEquals(DigestKind.entries.toSet(), selected.groups.map { it.kind }.toSet())
+        assertThat(
+            selected.groups.map { it.period }.toSet(),
+            `is`(
+                setOf(
+                    issues.first().period,
+                ),
+            ),
+        )
+        assertThat(
+            selected.issues.size,
+            `is`(
+                3,
+            ),
+        )
+        assertThat(
+            selected.groups.map { it.kind }.toSet(),
+            `is`(
+                DigestKind.entries.toSet(),
+            ),
+        )
     }
 
     @Test
     fun independentCountsDoNotManufactureMissingIssues() {
         val coverage = DigestCoverage(newIssues = 2, updatedIssues = 6)
         val selected = coverage.select(snapshot())
-        assertEquals(
-            issues.take(2).map { it.period },
+        assertThat(
             selected.groups.forDisplay(DigestKind.NEW).map { it.period },
+            `is`(
+                issues
+                    .take(
+                        2,
+                    )
+                    .map { it.period },
+            ),
         )
-        assertEquals(
-            issues.map { it.period },
+        assertThat(
             selected.groups.forDisplay(DigestKind.UPDATED).map { it.period },
+            `is`(
+                issues.map { it.period },
+            ),
         )
-        assertEquals(6, coverage.updatedIssues)
+        assertThat(
+            coverage.updatedIssues,
+            `is`(
+                6,
+            ),
+        )
     }
 
     @Test
@@ -79,8 +109,16 @@ class DigestCoverageTest {
                         },
                 )
         DigestCoverage().requireComplete(emptyLatest.issues)
-        assertTrue(DigestCoverage().select(emptyLatest).groups.forDisplay(DigestKind.NEW).isEmpty())
-        assertEquals(issues.first(), DigestCoverage().select(emptyLatest).issues.first())
+        assertThat(
+            DigestCoverage().select(emptyLatest).groups.forDisplay(DigestKind.NEW).isEmpty(),
+            `is`(true),
+        )
+        assertThat(
+            DigestCoverage().select(emptyLatest).issues.first(),
+            `is`(
+                issues.first(),
+            ),
+        )
     }
 
     @Test
@@ -111,15 +149,12 @@ class DigestCoverageTest {
                                 ForumTopicPreview(
                                     null,
                                     false,
-                                    "",
-                                    "",
-                                    0,
                                 ),
                         ),
                 )
         val selected = DigestCoverage().select(source)
-        assertTrue(selected.groups.isEmpty())
-        assertTrue(selected.previews.isEmpty())
+        assertThat(selected.groups.isEmpty(), `is`(true))
+        assertThat(selected.previews.isEmpty(), `is`(true))
     }
 
     @Test
@@ -139,10 +174,32 @@ class DigestCoverageTest {
                             ),
             )
         val selected = DigestCoverage(6, 6).select(repeated)
-        assertEquals(2, selected.groups.size)
-        assertEquals(setOf(issues.first().period), selected.groups.map { it.period }.toSet())
-        assertEquals(3, selected.issues.size)
-        assertEquals(7, repeated.groups.size)
+        assertThat(
+            selected.groups.size,
+            `is`(
+                2,
+            ),
+        )
+        assertThat(
+            selected.groups.map { it.period }.toSet(),
+            `is`(
+                setOf(
+                    issues.first().period,
+                ),
+            ),
+        )
+        assertThat(
+            selected.issues.size,
+            `is`(
+                3,
+            ),
+        )
+        assertThat(
+            repeated.groups.size,
+            `is`(
+                7,
+            ),
+        )
     }
 
     @Test

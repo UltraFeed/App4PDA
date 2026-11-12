@@ -8,7 +8,6 @@ import com.aurora.gplayapi.model.AppFile
 import com.aurora.gplayapi.model.Delivery
 import com.aurora.gplayapi.model.ItemFields
 import com.aurora.gplayapi.model.Restriction
-import io.github.ultrafeed.app4pda.core.AppPolicy
 import io.github.ultrafeed.app4pda.core.network.SharedRequests
 import io.github.ultrafeed.app4pda.core.network.SourceHttpException
 import java.io.IOException
@@ -183,7 +182,7 @@ internal constructor(
 // Bound a single Play details batch while retaining per-package outcomes.
 private const val DETAILS_BATCH_SIZE = 20
 
-private fun App.toPlayDetails() =
+internal fun App.toPlayDetails() =
     PlayAppDetails(
         PlayRelease(packageName, versionName, versionCode),
         displayName,
@@ -196,7 +195,7 @@ private fun App.toPlayDetails() =
         size,
     )
 
-private fun Delivery.toPlayDelivery(release: PlayRelease): PlayDelivery {
+internal fun Delivery.toPlayDelivery(release: PlayRelease): PlayDelivery {
     val problem =
         when {
             versionCode != 0L && versionCode != release.versionCode ->
@@ -224,19 +223,20 @@ private fun AppFile.toDownloadFile() =
         sha1,
     )
 
-private fun PlayException.asSourceFailure(): IOException =
+internal fun PlayException.asSourceFailure(): IOException =
     when (this) {
         is PlayException.NotFound -> PlaySourceException.NotFound()
         is PlayException.Unauthorized -> PlaySourceException.Authentication()
         is PlayException.AppNotPurchased,
         is PlayException.AppNotSupported,
         is PlayException.RequiresAccount -> PlaySourceException.Restricted()
-        is PlayException.RateLimited ->
-            PlaySourceException.RateLimited(
-                System.currentTimeMillis() + AppPolicy.PLAY_RETRY_DEFAULT_MILLIS,
-            )
+        is PlayException.RateLimited -> PlaySourceException.RateLimited()
+
         is PlayException.ServerError -> SourceHttpException(code)
         is PlayException.AppRemoved,
         is PlayException.NoFilesAvailable,
-        is PlayException.Unknown -> PlaySourceException.Unavailable("Google Play request failed")
+        is PlayException.Unknown ->
+            PlaySourceException.Unavailable(
+                "Google Play request failed",
+            )
     }.also { it.initCause(this) }

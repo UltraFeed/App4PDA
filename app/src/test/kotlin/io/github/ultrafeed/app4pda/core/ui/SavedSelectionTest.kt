@@ -3,7 +3,6 @@ package io.github.ultrafeed.app4pda.core.ui
 import androidx.lifecycle.SavedStateHandle
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SavedSelectionTest {
@@ -70,6 +69,6 @@ class SavedSelectionTest {
             ),
         )
         selection.replace(emptySet())
-        assertTrue(SavedSelection(saved, "selected").value.isEmpty())
+        assertThat(SavedSelection(saved, "selected").value.isEmpty(), `is`(true))
     }
 }

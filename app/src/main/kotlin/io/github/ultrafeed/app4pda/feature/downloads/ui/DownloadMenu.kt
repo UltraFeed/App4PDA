@@ -24,15 +24,29 @@ internal fun DownloadMenu(
     onInfo: (DownloadEntry) -> Unit,
     onDelete: (DownloadEntry) -> Unit,
 ) {
-    val files =
-        buildList<Pair<Int, () -> Unit>> {
-            add(R.string.downloads_save_copy to { onAction(entry, DownloadAction.SAVE) })
-            add(R.string.action_open to { onAction(entry, DownloadAction.OPEN) })
-            if (!entry.group && !entry.path.contains("/.play/"))
-                add(R.string.menu_downloads_rename to { onRename(entry) })
-            if (!entry.group)
-                add(R.string.action_share_file to { onAction(entry, DownloadAction.SHARE) })
-        }
+    val files = buildList {
+        add(R.string.downloads_save_copy to { onAction(entry, DownloadAction.SAVE) })
+        add(R.string.action_open to { onAction(entry, DownloadAction.OPEN) })
+        if (!entry.group && !entry.path.contains("/.play/"))
+            add(
+                R.string.menu_downloads_rename to
+                    {
+                        onRename(
+                            entry,
+                        )
+                    },
+            )
+        if (!entry.group)
+            add(
+                R.string.action_share_file to
+                    {
+                        onAction(
+                            entry,
+                            DownloadAction.SHARE,
+                        )
+                    },
+            )
+    }
     val groups =
         listOf(
             files,

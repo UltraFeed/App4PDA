@@ -24,7 +24,7 @@ object ForumListing {
 
     fun url(
         section: Int,
-    ) = "https://4pda.to/forum/lofiversion/index.php?f$section.html"
+    ): String = "https://4pda.to/forum/lofiversion/index.php?f$section.html"
 
     private fun addressMatch(url: String): MatchResult? =
         url.toHttpUrlOrNull()
@@ -33,13 +33,6 @@ object ForumListing {
 
     internal fun id(url: String, kind: String): Int? =
         addressMatch(url)?.takeIf { it.groupValues[1] == kind }?.groupValues?.get(2)?.toIntOrNull()
-
-    internal fun isFirstPage(url: String, kind: String, id: Int): Boolean =
-        addressMatch(url)?.let {
-            it.groupValues[1] == kind &&
-                it.groupValues[2].toIntOrNull() == id &&
-                (it.groupValues[PAGE_OFFSET_GROUP].toIntOrNull() ?: 0) == 0
-        } == true
 
     fun parse(html: String, section: Int, currentUrl: String): ForumListingPage {
         require(section in ForumSections.ids)

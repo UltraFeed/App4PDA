@@ -12,7 +12,7 @@ enum class ImageOrigin {
 
 data class ImageCacheSettings(val enabled: Boolean, val limitBytes: Long) {
     companion object {
-        val LIMITS_MIB = listOf(0, 100, 200, 500, 1000)
-        const val DEFAULT_LIMIT_MIB = 100
+        val LIMITS_MIB: List<Int> = listOf(0, 100, 200, 500, 1000)
+        const val DEFAULT_LIMIT_MIB: Int = 100
     }
 }

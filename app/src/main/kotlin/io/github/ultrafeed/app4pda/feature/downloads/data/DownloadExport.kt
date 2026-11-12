@@ -66,7 +66,14 @@ internal class DownloadExport(private val resolver: ContentResolver) {
 
     private suspend fun copyFile(file: File, target: Uri, onBytes: (Int) -> Unit) {
         file.inputStream().use { input ->
-            checkNotNull(resolver.openOutputStream(target, "wt")) { "Cannot open destination" }
+            checkNotNull(
+                    resolver.openOutputStream(
+                        target,
+                        "wt",
+                    ),
+                ) {
+                    "Cannot open destination"
+                }
                 .use { output ->
                     val buffer = ByteArray(EXPORT_BUFFER_BYTES)
                     var count = input.read(buffer)

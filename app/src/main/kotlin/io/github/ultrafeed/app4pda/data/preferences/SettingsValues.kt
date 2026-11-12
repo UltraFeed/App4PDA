@@ -11,8 +11,8 @@ import io.github.ultrafeed.app4pda.feature.recent.data.DigestCoverage
 
 class SettingsValues
 internal constructor(private val context: Context, internal val values: Map<String, Any>) {
-    val rules = ParsingRules(values)
-    val session = ForumSessionSettings(values, rules)
+    val rules: ParsingRules = ParsingRules(values)
+    val session: ForumSessionSettings = ForumSessionSettings(values, rules)
     val autoSwitchForumAccount: Boolean
         get() = getBoolean("forum_auto_switch")
 

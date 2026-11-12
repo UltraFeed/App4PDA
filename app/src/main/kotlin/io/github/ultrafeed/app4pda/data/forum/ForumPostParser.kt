@@ -17,7 +17,9 @@ internal class ForumPostParser(
         val postId = page.postId
         val dateText =
             Regex(rule("post_update"))
-                .find(body.selectFirst(".edit")?.text().orEmpty())
+                .find(
+                    body.selectFirst(".edit")?.text().orEmpty(),
+                )
                 ?.groupValues
                 ?.getOrNull(1)
         body.select("script,style,form").remove()

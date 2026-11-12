@@ -3,7 +3,6 @@ package io.github.ultrafeed.app4pda.feature.installed
 import io.github.ultrafeed.app4pda.core.packages.LocalPackage
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class InstalledAppStatusTest {
@@ -12,9 +11,9 @@ class InstalledAppStatusTest {
     @Test
     fun missingTopicCannotAdvertiseAnUpdateInEitherListOrCard() {
         val value = app(forum = "3", topic = 0)
-        assertFalse(value.forumUpdate)
-        assertFalse(value.visibleUpdate)
-        assertFalse(installedAppStatus(value, appearance).forumUpdate)
+        assertThat(value.forumUpdate, `is`(false))
+        assertThat(value.visibleUpdate, `is`(false))
+        assertThat(installedAppStatus(value, appearance).forumUpdate, `is`(false))
     }
 
     private fun app(
@@ -84,7 +83,10 @@ class InstalledAppStatusTest {
                 AppVersionStatus.INSTALLED_NEWER,
             ),
         )
-        assertFalse(installedAppStatus(app(code = 0, marketCode = 30), appearance).playUpdate)
+        assertThat(
+            installedAppStatus(app(code = 0, marketCode = 30), appearance).playUpdate,
+            `is`(false),
+        )
     }
 
     @Test
@@ -137,7 +139,7 @@ class InstalledAppStatusTest {
             ),
         )
         assertThat(
-            installedAppStatus(app(local = "2.0 beta", forum = "2.0"), appearance).localVersion,
+            installedAppStatus(app(local = "2.0 beta"), appearance).localVersion,
             `is`(
                 AppVersionStatus.UPDATE_AVAILABLE,
             ),
