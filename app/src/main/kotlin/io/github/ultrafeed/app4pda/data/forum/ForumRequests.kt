@@ -12,7 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** One HTTP page request at a time; persisted pauses also apply to interactive work. */
+/** Shared pacing; background backoff must not prevent an interactive page from being opened. */
 class ForumRequests(
     private val dao: ForumDao,
     private val elapsedRealtime: () -> Long = SystemClock::elapsedRealtime,
@@ -21,15 +21,19 @@ class ForumRequests(
     private val mutex = Mutex()
     private val interactive = AtomicInteger()
     private var nextAt = 0L
-    private var blocked: ForumApiException? = null
+    private val limitedPages = mutableMapOf<String, ForumApiException>()
     private val pacing = ForumPacing()
 
-    suspend fun <T> execute(userInitiated: Boolean, action: suspend () -> T): T {
+    suspend fun <T> execute(
+        userInitiated: Boolean,
+        url: String? = null,
+        action: suspend () -> T,
+    ): T {
         if (userInitiated) interactive.incrementAndGet()
         try {
             var turn: RequestTurn<T>
             do {
-                turn = mutex.withLock { takeTurn(userInitiated, action) }
+                turn = mutex.withLock { takeTurn(userInitiated, url, action) }
                 if (turn is RequestTurn.Wait) delay(turn.millis.milliseconds)
             } while (turn is RequestTurn.Wait)
             return (turn as RequestTurn.Completed).value
@@ -40,46 +44,71 @@ class ForumRequests(
 
     private suspend fun <T> takeTurn(
         userInitiated: Boolean,
+        url: String?,
         action: suspend () -> T,
     ): RequestTurn<T> {
         if (!userInitiated && interactive.get() > 0) {
             return RequestTurn.Wait(AppPolicy.REQUEST_PRIORITY_POLL_MILLIS)
         }
-        requireAvailable(userInitiated)
+        requireAvailable(userInitiated, url)
         val pause = nextAt - elapsedRealtime()
         return if (pause > 0) {
             RequestTurn.Wait(pause.coerceAtMost(AppPolicy.REQUEST_PRIORITY_POLL_MILLIS))
         } else {
-            RequestTurn.Completed(perform(userInitiated, action))
+            RequestTurn.Completed(perform(userInitiated, url, action))
         }
     }
 
-    private suspend fun requireAvailable(userInitiated: Boolean) {
+    private suspend fun requireAvailable(userInitiated: Boolean, url: String?) {
+        val now = wallTime()
+        limitedPages.entries.removeAll { (it.value.retryAt ?: 0L) <= now }
+        limitedPages[url]?.let { throw it }
+        if (userInitiated) return
         val remaining = (dao.queueState()?.retryAt ?: 0L) - wallTime()
         if (remaining > 0) {
-            throw (blocked?.takeIf { it.reason == ForumFailure.VERIFICATION_REQUIRED }
-                ?: ForumApiException(
-                    ForumFailure.HTTP,
-                    "Forum rate limit",
-                    HttpStatusCode.TooManyRequests.value,
-                    retryAfterMillis = remaining,
-                    retryAt = wallTime() + remaining,
-                ))
+            throw ForumApiException(
+                ForumFailure.HTTP,
+                "Forum rate limit",
+                HttpStatusCode.TooManyRequests.value,
+                retryAfterMillis = remaining,
+                retryAt = wallTime() + remaining,
+            )
         }
-        if (blocked?.reason == ForumFailure.VERIFICATION_REQUIRED) blocked = null
-        if (!userInitiated) blocked?.let { throw it }
     }
 
-    private suspend fun <T> perform(userInitiated: Boolean, action: suspend () -> T): T {
+    private suspend fun <T> perform(
+        userInitiated: Boolean,
+        url: String?,
+        action: suspend () -> T,
+    ): T {
         try {
             return action().also {
                 pacing.succeeded()
-                // A successful public page cannot lift the independent search quota.
-                if (userInitiated && blocked?.statusCode != HttpStatusCode.TooManyRequests.value)
-                    blocked = null
+                if (userInitiated) {
+                    dao.queueState()
+                        ?.takeIf { state -> state.retryAt > wallTime() }
+                        ?.let { state ->
+                            dao.saveQueueState(state.copy(retryAt = 0))
+                        }
+                }
             }
         } catch (failure: ForumApiException) {
-            throw recordFailure(failure)
+            val recorded = recordFailure(failure)
+            val duration = failure.retryAfterMillis ?: 0
+            if (url != null && !failure.searchQuota && duration > 0) {
+                val now = wallTime()
+                val retryAt = now + duration.coerceAtMost(Long.MAX_VALUE - now)
+                limitedPages[url] =
+                    ForumApiException(
+                        failure.reason,
+                        failure.message.orEmpty(),
+                        failure.statusCode,
+                        cause = failure,
+                        retryAfterMillis = failure.retryAfterMillis,
+                        retryAt = retryAt,
+                    )
+            }
+            throw recorded
         } finally {
             nextAt = elapsedRealtime() + pacing.intervalMillis
         }
@@ -97,23 +126,19 @@ class ForumRequests(
                         ?: AppPolicy.FORUM_VERIFICATION_COOLDOWN_MILLIS
                 val retryAt = postpone(duration)
                 return ForumApiException(
-                        failure.reason,
-                        failure.message.orEmpty(),
-                        failure.statusCode,
-                        cause = failure,
-                        retryAfterMillis = retryAt - wallTime(),
-                        retryAt = retryAt,
-                    )
-                    .also { blocked = it }
+                    failure.reason,
+                    failure.message.orEmpty(),
+                    failure.statusCode,
+                    cause = failure,
+                    retryAfterMillis = retryAt - wallTime(),
+                    retryAt = retryAt,
+                )
             }
 
             quota -> {
                 val duration = failure.retryAfterMillis ?: SEARCH_COOLDOWN_MILLIS
                 postpone(duration)
             }
-
-            failure.reason == ForumFailure.LOGIN_REQUIRED ||
-                failure.statusCode == HttpStatusCode.Forbidden.value -> blocked = failure
 
             (failure.statusCode ?: 0) >= HttpStatusCode.InternalServerError.value ||
                 failure.reason == ForumFailure.NETWORK -> pacing.failed()

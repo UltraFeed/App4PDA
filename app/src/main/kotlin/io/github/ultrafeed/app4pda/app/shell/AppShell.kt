@@ -56,6 +56,7 @@ import io.github.ultrafeed.app4pda.app.navigation.rememberMainNavigation
 import io.github.ultrafeed.app4pda.core.ui.theme.AppTheme
 import io.github.ultrafeed.app4pda.feature.installed.data.InstalledAppsRepository
 import io.github.ultrafeed.app4pda.feature.installed.data.UpdateSchedule
+import io.github.ultrafeed.app4pda.feature.updates.SelfUpdateDialogs
 import kotlinx.coroutines.awaitCancellation
 import org.koin.compose.koinInject
 
@@ -113,6 +114,7 @@ fun AppShell(activity: MainActivity) {
                 goBack,
             )
             activity.dialogs.Render()
+            if (activity.selfUpdate.enabled) SelfUpdateDialogs(activity, activity.selfUpdate)
         }
         BackHandler(backInProgress) {}
     }

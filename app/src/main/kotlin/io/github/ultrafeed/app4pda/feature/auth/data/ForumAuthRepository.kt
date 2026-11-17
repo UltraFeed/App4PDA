@@ -2,6 +2,7 @@ package io.github.ultrafeed.app4pda.feature.auth.data
 
 import android.content.Context
 import android.text.Html
+import android.util.Log
 import io.github.ultrafeed.app4pda.R
 import io.github.ultrafeed.app4pda.core.network.SourceHttpException
 import io.github.ultrafeed.app4pda.core.network.SourceProblem
@@ -11,6 +12,7 @@ import io.github.ultrafeed.app4pda.data.forum.ForumDocumentParser
 import io.github.ultrafeed.app4pda.data.forum.ForumFailure
 import io.github.ultrafeed.app4pda.data.forum.ForumRequests
 import io.github.ultrafeed.app4pda.data.forum.ForumUrls
+import io.github.ultrafeed.app4pda.data.forum.ForumVerification
 import io.github.ultrafeed.app4pda.data.forum.forumAccessEvent
 import io.github.ultrafeed.app4pda.data.forum.forumUserAgent
 import io.github.ultrafeed.app4pda.data.forum.isForumChallenge
@@ -56,6 +58,12 @@ internal class ForumAuthResponse(
 
 /** A rejection message parsed from the forum, rather than an internal exception description. */
 internal class ForumAuthRejected(message: String) : IllegalArgumentException(message) {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+}
+
+internal class ForumAuthRenewed(val captcha: ForumCaptcha, message: String) : IOException(message) {
     private companion object {
         private const val serialVersionUID = 1L
     }
@@ -121,7 +129,8 @@ internal constructor(
         requests.execute(userInitiated = true) {
             val response =
                 transport.execute(
-                    request(
+                    authRequest(
+                            context,
                             "https://${ForumUrls.HOST}/forum/index.php?showuser=${account.id}&action=edit",
                         )
                         .apply {
@@ -201,22 +210,20 @@ internal constructor(
     val loginName: String
         get() = settings.current.session.username
 
-    private fun request(url: String) =
-        HttpRequestBuilder().apply {
-            url(ForumUrls.normalize(url))
-            headers.append(
-                "User-Agent",
-                forumUserAgent(context),
-            )
-            headers.append("Accept-Encoding", "identity")
-        }
-
     suspend fun loadCaptcha(): ForumCaptcha {
         val rules = settings.awaitReady()
-        val response =
-            requests.execute(true) {
-                transport.execute(request(rules.rules["login_url"])).also(::validateResponse)
-            }
+        return fetchCaptcha(rules)
+    }
+
+    private suspend fun fetchCaptcha(rules: SettingsValues): ForumCaptcha {
+        val url = rules.rules["login_url"]
+        Log.d("ForumAuth", "Requesting login form")
+        var response = transport.execute(authRequest(context, url))
+        if (isForumChallenge(response.mitigated, response.html)) {
+            Log.d("ForumAuth", "Login form requires Cloudflare verification")
+            if (ForumVerification.verify(url))
+                response = transport.execute(authRequest(context, url))
+        }
         currentCoroutineContext().ensureActive()
         forumAccessEvent(
             context,
@@ -299,9 +306,14 @@ internal constructor(
                     "=" +
                     URLEncoder.encode(value, "windows-1251")
             }
-        return request(rules.rules["login_url"]).apply {
+        return authRequest(context, rules.rules["login_url"]).apply {
             method = HttpMethod.Post
-            if (captcha.cookies.isNotBlank()) headers.append("Cookie", captcha.cookies)
+            val cookies =
+                listOf(captcha.cookies, ForumVerification.clearance.orEmpty())
+                    .filter(String::isNotBlank)
+                    .joinToString("; ")
+            headers.remove("Cookie")
+            if (cookies.isNotBlank()) headers.append("Cookie", cookies)
             setBody(TextContent(body, ContentType.Application.FormUrlEncoded))
         }
     }
@@ -315,17 +327,18 @@ internal constructor(
     ): String {
         val rules = settings.awaitReady()
         val response =
-            requests.execute(true) {
-                transport
-                    .execute(loginRequest(username, password, hidden, answer, captcha, rules))
-                    .also(::validateResponse)
-            }
+            transport.execute(loginRequest(username, password, hidden, answer, captcha, rules))
+        if (
+            isForumChallenge(response.mitigated, response.html) &&
+                ForumVerification.verify(rules.rules["login_url"])
+        ) {
+            throw ForumAuthRenewed(
+                fetchCaptcha(rules),
+                context.getString(R.string.auth_form_renewed),
+            )
+        }
         currentCoroutineContext().ensureActive()
         validateResponse(response)
-        if (response.code !in HttpStatusCode.OK.value until HttpStatusCode.BadRequest.value)
-            throw IOException(
-                "HTTP ${response.code}",
-            )
         val cookies = cookieHeader(response.cookies)
         if (userId(cookies) <= 0) {
             val message =
@@ -372,6 +385,13 @@ internal constructor(
                 response.code,
                 retryAfterMillis = retryAfterMillis(response.retryAfter),
             )
+        if (response.code >= HttpStatusCode.BadRequest.value)
+            throw ForumApiException(
+                ForumFailure.HTTP,
+                "Authentication HTTP ${response.code}",
+                response.code,
+                retryAfterMillis = retryAfterMillis(response.retryAfter),
+            )
     }
 
     companion object {
@@ -392,3 +412,13 @@ internal constructor(
                 .joinToString("; ") { "${it.name}=${it.value}" }
     }
 }
+
+private fun authRequest(context: Context, url: String): HttpRequestBuilder =
+    HttpRequestBuilder().apply {
+        url(ForumUrls.normalize(url))
+        headers.append("User-Agent", forumUserAgent(context))
+        headers.append("Accept-Encoding", "identity")
+        ForumVerification.clearance?.takeIf(String::isNotBlank)?.let {
+            headers.append("Cookie", it)
+        }
+    }

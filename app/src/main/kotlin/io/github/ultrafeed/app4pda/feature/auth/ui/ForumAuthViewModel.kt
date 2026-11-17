@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import io.github.ultrafeed.app4pda.feature.auth.ForumAuthChange
 import io.github.ultrafeed.app4pda.feature.auth.ForumCaptcha
 import io.github.ultrafeed.app4pda.feature.auth.ForumSession
+import io.github.ultrafeed.app4pda.feature.auth.data.ForumAuthRejected
+import io.github.ultrafeed.app4pda.feature.auth.data.ForumAuthRenewed
 import io.github.ultrafeed.app4pda.feature.auth.data.ForumAuthRepository
 import java.io.IOException
 import kotlinx.coroutines.Job
@@ -207,8 +209,12 @@ class ForumAuthViewModel(
         mutableState.value =
             state.value.copy(
                 busy = false,
-                error = authFailure(error),
-                captcha = null,
+                error =
+                    authFailure(
+                        if (error is ForumAuthRenewed) ForumAuthRejected(error.message.orEmpty())
+                        else error,
+                    ),
+                captcha = (error as? ForumAuthRenewed)?.captcha,
                 answer = "",
             )
     }

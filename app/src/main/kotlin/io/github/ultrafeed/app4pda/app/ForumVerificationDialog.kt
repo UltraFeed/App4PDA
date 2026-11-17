@@ -52,7 +52,7 @@ internal fun ForumVerificationDialog() {
                                 override fun onPageFinished(view: WebView, url: String) {
                                     if (url != current.url) return
                                     view.evaluateJavascript(
-                                        "!!document.querySelector('#ipbwrapper, [id^=post-main-]') && !document.querySelector('script[src*=\"/cdn-cgi/challenge-platform/\"]')",
+                                        "!!document.querySelector('#ipbwrapper, [id^=post-main-], input[name=\"captcha-time\"], input[name=\"login\"]') && !document.querySelector('script[src*=\"/cdn-cgi/challenge-platform/\"]')",
                                     ) { ready ->
                                         if (ready == "true") {
                                             val cookie =

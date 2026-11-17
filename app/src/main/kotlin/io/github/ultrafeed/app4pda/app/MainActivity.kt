@@ -39,7 +39,6 @@ import io.github.ultrafeed.app4pda.data.preferences.SettingsLoad
 import io.github.ultrafeed.app4pda.feature.downloads.data.DownloadController
 import io.github.ultrafeed.app4pda.feature.settings.data.SettingsRepository
 import io.github.ultrafeed.app4pda.feature.updates.SelfUpdate
-import io.github.ultrafeed.app4pda.feature.updates.SelfUpdateDialogs
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.android.inject
@@ -125,7 +124,6 @@ class MainActivity : ComponentActivity() {
                 if (destinationReady) {
                     AppShell(this)
                     ForumVerificationDialog()
-                    if (selfUpdate.enabled) SelfUpdateDialogs(this, selfUpdate)
                 } else
                     Box(
                         Modifier.fillMaxSize(),

@@ -159,7 +159,7 @@ internal constructor(
 
     suspend fun loadListing(url: String, userInitiated: Boolean = true): String =
         withContext(ioDispatcher) {
-            transports.requests.execute(userInitiated) {
+            transports.requests.execute(userInitiated, url) {
                 decodePage(
                     readForumPageResponse(
                         url,
@@ -221,7 +221,7 @@ internal constructor(
                 try {
                     requireSearchSession(snapshot, settings.current)
                     result =
-                        transports.requests.execute(userInitiated) {
+                        transports.requests.execute(userInitiated, url) {
                             val account =
                                 settings.current.forumAccounts().firstOrNull {
                                     it.id == snapshot.session.userId
@@ -287,7 +287,7 @@ internal constructor(
                 else -> rules.rules["forum_url_show_topic"].replace("%topic_id%", "$topicId")
             }
         val response =
-            transports.requests.execute(userInitiated) {
+            transports.requests.execute(userInitiated, url) {
                 readForumPageResponse(
                     url,
                     topic = true,

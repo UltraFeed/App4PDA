@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="ru">
+    <string name="auth_form_renewed">Проверка пройдена. Форма входа обновлена. Введите новую капчу и подтвердите вход.</string>
     <string name="launcher_icon">Иконка приложения</string>
     <string name="launcher_icon_blue">Синяя</string>
     <string name="launcher_icon_accent">Системный акцент</string>
