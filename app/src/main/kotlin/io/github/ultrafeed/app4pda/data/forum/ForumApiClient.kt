@@ -161,7 +161,12 @@ internal constructor(
         withContext(ioDispatcher) {
             transports.requests.execute(userInitiated) {
                 decodePage(
-                    readForumPageResponse(url, false, settings.awaitReady(), emptyMap()),
+                    readForumPageResponse(
+                        url,
+                        false,
+                        settings.awaitReady(),
+                        emptyMap(),
+                    ),
                 )
             }
         }
@@ -232,7 +237,13 @@ internal constructor(
                             )
                                 throw ForumSearchSessionChanged()
                             val response =
-                                readForumPageResponse(url, true, snapshot, emptyMap(), true)
+                                readForumPageResponse(
+                                    url,
+                                    true,
+                                    snapshot,
+                                    emptyMap(),
+                                    true,
+                                )
                             ForumTopicSearch.parse(decodePage(response), url, section)
                         }
                 } catch (_: ForumSearchSessionChanged) {
@@ -277,7 +288,12 @@ internal constructor(
             }
         val response =
             transports.requests.execute(userInitiated) {
-                readForumPageResponse(url, topic = true, snapshot = rules, validators = emptyMap())
+                readForumPageResponse(
+                    url,
+                    topic = true,
+                    snapshot = rules,
+                    validators = emptyMap(),
+                )
             }
         var resolvedPost = postId
         if (resolvedPost == -1)
@@ -326,7 +342,10 @@ internal constructor(
         val headers = buildMap {
             putAll(validators)
             put("User-Agent", forumUserAgent(context))
-            if (cookies.isNotEmpty()) put("Cookie", cookies)
+            val combinedCookies =
+                listOfNotNull(cookies.takeIf(String::isNotEmpty), ForumVerification.clearance)
+                    .joinToString("; ")
+            if (combinedCookies.isNotEmpty()) put("Cookie", combinedCookies)
             if (topic) {
                 put("Cache-Control", "no-cache")
                 put("Pragma", "no-cache")
@@ -339,7 +358,25 @@ internal constructor(
                 forumHttpEvent(context, target, hop, session)
             }
         currentCoroutineContext().ensureActive()
-        context.validateForumResponse(response, validators)
+        try {
+            context.validateForumResponse(response, validators)
+        } catch (failure: ForumApiException) {
+            if (
+                failure.reason != ForumFailure.VERIFICATION_REQUIRED ||
+                    !ForumVerification.verify(target)
+            )
+                throw failure
+            val verifiedHeaders = headers.toMutableMap()
+            verifiedHeaders["Cookie"] =
+                listOfNotNull(cookies.takeIf(String::isNotEmpty), ForumVerification.clearance)
+                    .joinToString("; ")
+            val verified =
+                transports.pages.fetchForumResponse(target, verifiedHeaders) { hop, session ->
+                    forumHttpEvent(context, target, hop, session)
+                }
+            context.validateForumResponse(verified, validators)
+            return verified
+        }
         return response
     }
 

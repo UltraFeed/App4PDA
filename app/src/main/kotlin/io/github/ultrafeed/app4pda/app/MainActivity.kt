@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
                 }
                 if (destinationReady) {
                     AppShell(this)
+                    ForumVerificationDialog()
                     if (selfUpdate.enabled) SelfUpdateDialogs(this, selfUpdate)
                 } else
                     Box(
