@@ -30,6 +30,7 @@ import org.jsoup.Jsoup
 enum class ForumFailure {
     NETWORK,
     HTTP,
+    PAUSED,
     EMPTY_CONTENT,
     INVALID_RESPONSE,
     PARSING,

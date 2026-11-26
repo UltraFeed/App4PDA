@@ -215,6 +215,7 @@ internal constructor(
     ) {
         private var failures = 0
         private var needsUser = false
+        private var forumPaused = false
 
         suspend fun execute(): UpdateCheckResult {
             mutableState.update { it.copy(loading = true, errors = emptyMap(), completed = 0) }
@@ -250,6 +251,7 @@ internal constructor(
                 LocalUpdateNotifications.publish(context, snapshot(), configuration, users)
                 when {
                     needsUser -> UpdateCheckResult.USER_VERIFICATION_REQUIRED
+                    forumPaused && failures == 1 -> UpdateCheckResult.PAUSED
                     failures > 0 -> UpdateCheckResult.PARTIAL
                     else -> UpdateCheckResult.COMPLETED
                 }
@@ -338,6 +340,7 @@ internal constructor(
                         setOf(
                             ForumFailure.VERIFICATION_REQUIRED,
                             ForumFailure.LOGIN_REQUIRED,
+                            ForumFailure.PAUSED,
                         )
             } ?: true
         }
@@ -405,6 +408,7 @@ internal constructor(
         private suspend fun failed(source: UpdateSource, error: Exception) {
             reportFailure(source, error)
             failures++
+            if ((error as? ForumApiException)?.reason == ForumFailure.PAUSED) forumPaused = true
             if ((error as? ForumApiException)?.reason == ForumFailure.VERIFICATION_REQUIRED)
                 needsUser = true
         }

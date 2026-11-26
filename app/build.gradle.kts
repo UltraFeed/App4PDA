@@ -13,7 +13,7 @@ val releaseKeystore: String? = providers.environmentVariable("RELEASE_KEYSTORE_P
 android {
     namespace = "io.github.ultrafeed.app4pda"
     compileSdk = libs.versions.compileSdk.get().toInt()
-    compileSdkMinor = 0
+    compileSdkMinor = libs.versions.compileSdkMinor.get().toInt()
     ndkVersion = libs.versions.ndk.get()
 
     defaultConfig {

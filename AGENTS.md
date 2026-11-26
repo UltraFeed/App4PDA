@@ -27,6 +27,10 @@ The project has one Android module. `app` wires navigation, lifecycle, and Koin.
 
 ### Sources and caches
 
+- Cloudflare verification recognizes both standard forum documents and lofiversion `.postcontent`. Each verification request owns a fresh WebView. Ignore stale navigation callbacks, permit same-host forum redirects, and log main-document failures separately from resource errors. Digest Retry is interactive even when cached content exists; automatic cache refresh keeps background priority.
+
+- A local background deferral uses `ForumFailure.PAUSED`, carries only its deadline, and never invents HTTP 429 or a server Retry-After. Preserve the originating failure in memory. After process restart, describe the stored deadline as a local pause with unknown origin. A paused background chain stops without immediately retrying; independent source failures retain their normal retry behavior.
+
 - Login-form and credential requests run independently of the page/search queue and its persisted pauses. Handle their actual HTTP responses, including rate limits and Cloudflare challenges. Foreground login-form challenges use the existing Cloudflare WebView and one GET retry. A challenged credential POST is never replayed automatically; refresh the form and require explicit sign-in confirmation. CAPTCHA cookies remain scoped to the temporary login form.
 
 - Load public forum pages anonymously over HTTP. Scope credentials to search, profile, and protected download resolution. Login and CAPTCHA are manual. Keep account-private data out of shared caches. A foreground Cloudflare challenge opens a separate live WebView without a JavaScript bridge. After the forum document loads, use only its cf_clearance cookie with the same WebView User-Agent for one HTTP retry. Never copy browser account cookies into HTTP sessions. Persisted queue pauses stop background work, while interactive page requests can recover access. A successful interactive request clears background backoff. Explicit positive Retry-After values also pause the responding URL in memory until expiry; other URLs remain accessible. Ordinary 403 and login failures do not block unrelated requests. Background challenges do not open UI when the app is backgrounded. Search quotas remain per account and automatic rotation follows the user's setting.
@@ -50,6 +54,8 @@ The project has one Android module. `app` wires navigation, lifecycle, and Koin.
 - On each main activity launch, release builds check GitHub's latest stable release API, with `releases/latest` and the tagged asset list as fallback. Debug builds do not self-update. Use GitHub's APK digest. Ask before downloading and open Android's confirmation only after verifying the checksum, package identity, strictly higher version code, and signing identity. Defer the installer until the activity is in the foreground.
 
 ## Build and verification
+
+- Compose BOM 2026.11.01 requires compile SDK 37.1. Read both compile SDK components from the version catalog and install the matching platform in CI. Keep minSdk and targetSdk independent of this build requirement.
 
 - Use the Gradle wrapper and the checked-in daemon/toolchain settings. Keep invocations sequential, use the settings in `gradle.properties`, and run `gradlew --stop` after checks. Follow the current workflows for hosted runner and SDK setup. Build output is under `app/build/` for module tasks and `build/` for root tasks.
 - Run `./gradlew verifyDebug --continue` locally or `gradlew.bat verifyDebug --continue` on Windows. The task runs Spotless, type-aware Detekt, debug Android Lint, JVM tests, and debug assembly. CI runs the same task with build and configuration caches disabled for CodeQL's manual build. Use `actionlint` for workflow changes. Review actual test counts and reports. Avoid baselines, broad suppressions, and blanket keep rules.

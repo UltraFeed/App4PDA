@@ -43,6 +43,7 @@ enum class UpdateCheckResult {
     COMPLETED,
     PARTIAL,
     USER_VERIFICATION_REQUIRED,
+    PAUSED,
     TEMPORARY_FAILURE,
 }
 
@@ -57,7 +58,8 @@ class UpdateWorker(
         try {
             settings.awaitReady()
             when (repository.checkInBackground()) {
-                UpdateCheckResult.USER_VERIFICATION_REQUIRED -> Result.success()
+                UpdateCheckResult.USER_VERIFICATION_REQUIRED,
+                UpdateCheckResult.PAUSED -> Result.success()
                 UpdateCheckResult.PARTIAL,
                 UpdateCheckResult.TEMPORARY_FAILURE -> Result.retry()
                 UpdateCheckResult.COMPLETED -> refreshDigest()
@@ -81,6 +83,7 @@ class UpdateWorker(
         } catch (failure: ForumApiException) {
             if (
                 failure.reason == ForumFailure.VERIFICATION_REQUIRED ||
+                    failure.reason == ForumFailure.PAUSED ||
                     failure.statusCode == HttpStatusCode.Forbidden.value
             )
                 Result.success()

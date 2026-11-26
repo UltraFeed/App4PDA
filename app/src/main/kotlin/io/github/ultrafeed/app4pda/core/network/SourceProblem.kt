@@ -5,6 +5,7 @@ import io.github.ultrafeed.app4pda.R
 import io.github.ultrafeed.app4pda.core.formatting.DisplayFormats
 import io.github.ultrafeed.app4pda.data.forum.ForumApiException
 import io.github.ultrafeed.app4pda.data.forum.ForumFailure
+import io.ktor.http.HttpStatusCode
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -117,10 +118,17 @@ private fun forumPause(context: Context, causes: List<Throwable>): Pair<String, 
                     )
                 } ?: context.getString(R.string.forum_verification_required))
 
+        retryAt != null && failures.any { it.statusCode == HttpStatusCode.TooManyRequests.value } ->
+            "HTTP_429" to
+                context.getString(
+                    R.string.source_problem_retry_at,
+                    DisplayFormats.dateTime(retryAt, "dd.MM.yyyy, HH:mm:ss"),
+                )
+
         retryAt != null ->
             "FORUM_PAUSED" to
                 context.getString(
-                    R.string.source_problem_retry_at,
+                    R.string.forum_background_paused_until,
                     DisplayFormats.dateTime(retryAt, "dd.MM.yyyy, HH:mm:ss"),
                 )
 

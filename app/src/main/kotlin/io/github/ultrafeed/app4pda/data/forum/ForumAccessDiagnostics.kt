@@ -42,7 +42,7 @@ internal fun forumAccessEvent(
     code: Int? = null,
 ) {
     if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return
-    val uri = url?.toUri()
+    val uri = url?.toUri()?.takeIf { it.isHierarchical }
     val route =
         when {
             uri == null -> ""
@@ -58,12 +58,15 @@ internal fun forumAccessEvent(
             }
 
             uri.path == "/forum/index.php" -> "forum-index"
+            uri.path == "/forum/lofiversion/index.php" -> "forum-lofiversion"
             else -> "resource"
         }
     Log.d(
         "ForumAccess",
         "$event host=${uri?.host.orEmpty()} route=$route topic=${
-            uri?.getQueryParameter("showtopic").orEmpty()
+            uri?.getQueryParameter("showtopic")
+                ?: Regex("^t(\\d+)(?:-\\d+)?\\.html(?:&|$)")
+                    .find(uri?.encodedQuery.orEmpty())?.groupValues?.get(1).orEmpty()
         } code=${code ?: 0}",
     )
 }

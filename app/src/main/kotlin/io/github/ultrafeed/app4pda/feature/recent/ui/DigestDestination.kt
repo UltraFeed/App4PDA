@@ -131,7 +131,7 @@ class DigestViewModel(
         viewModelScope.launch {
             repository.coverageChanges.collect { coverage ->
                 mutableState.update { it.copy(coverage = coverage) }
-                refresh()
+                refresh(userInitiated = false)
             }
         }
     }
@@ -141,14 +141,16 @@ class DigestViewModel(
         mutableState.update { it.copy(kind = kind) }
     }
 
-    fun refresh() {
+    fun refresh(): Unit = refresh(userInitiated = true)
+
+    private fun refresh(userInitiated: Boolean) {
         dismissed.clear()
         refreshJob?.cancel()
         mutableState.update { it.copy(loading = true, error = null) }
         refreshJob = viewModelScope.launch {
             try {
                 val cached = repository.cached()
-                val groups = repository.load(userInitiated = cached.isEmpty())
+                val groups = repository.load(userInitiated = userInitiated || cached.isEmpty())
                 mutableState.update { it.copy(loading = false) }
                 for ((topicId) in groups.flatMap { it.entries }.distinctBy { it.topicId }) {
                     try {

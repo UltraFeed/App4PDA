@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="forum_background_paused_until">Background forum requests are paused until %1$s.</string>
     <string name="auth_form_renewed">Verification completed. The login form has been refreshed. Enter the new CAPTCHA and confirm sign-in.</string>
     <string name="launcher_icon">App icon</string>
     <string name="launcher_icon_blue">Blue</string>

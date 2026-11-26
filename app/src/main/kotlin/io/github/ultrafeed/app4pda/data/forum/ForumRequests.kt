@@ -22,6 +22,7 @@ class ForumRequests(
     private val interactive = AtomicInteger()
     private var nextAt = 0L
     private val limitedPages = mutableMapOf<String, ForumApiException>()
+    private var backgroundFailure: ForumApiException? = null
     private val pacing = ForumPacing()
 
     suspend fun <T> execute(
@@ -67,13 +68,13 @@ class ForumRequests(
         val remaining = (dao.queueState()?.retryAt ?: 0L) - wallTime()
         if (remaining > 0) {
             throw ForumApiException(
-                ForumFailure.HTTP,
-                "Forum rate limit",
-                HttpStatusCode.TooManyRequests.value,
-                retryAfterMillis = remaining,
+                ForumFailure.PAUSED,
+                "Background forum requests are deferred",
+                cause = backgroundFailure,
                 retryAt = wallTime() + remaining,
             )
         }
+        backgroundFailure = null
     }
 
     private suspend fun <T> perform(
@@ -89,6 +90,7 @@ class ForumRequests(
                         ?.takeIf { state -> state.retryAt > wallTime() }
                         ?.let { state ->
                             dao.saveQueueState(state.copy(retryAt = 0))
+                            backgroundFailure = null
                         }
                 }
             }
@@ -124,20 +126,20 @@ class ForumRequests(
                 val duration =
                     failure.retryAfterMillis?.takeIf { it > 0 }
                         ?: AppPolicy.FORUM_VERIFICATION_COOLDOWN_MILLIS
-                val retryAt = postpone(duration)
+                val retryAt = postpone(duration, failure)
                 return ForumApiException(
                     failure.reason,
                     failure.message.orEmpty(),
                     failure.statusCode,
                     cause = failure,
-                    retryAfterMillis = retryAt - wallTime(),
+                    retryAfterMillis = failure.retryAfterMillis,
                     retryAt = retryAt,
                 )
             }
 
             quota -> {
                 val duration = failure.retryAfterMillis ?: SEARCH_COOLDOWN_MILLIS
-                postpone(duration)
+                postpone(duration, failure)
             }
 
             (failure.statusCode ?: 0) >= HttpStatusCode.InternalServerError.value ||
@@ -146,11 +148,13 @@ class ForumRequests(
         return failure
     }
 
-    private suspend fun postpone(duration: Long): Long {
+    private suspend fun postpone(duration: Long, failure: ForumApiException): Long {
         val state = dao.queueState() ?: ForumQueueState()
         val now = wallTime()
-        val retryAt = maxOf(state.retryAt, now + duration.coerceIn(0, Long.MAX_VALUE - now))
+        val requestedAt = now + duration.coerceIn(0, Long.MAX_VALUE - now)
+        val retryAt = maxOf(state.retryAt, requestedAt)
         dao.saveQueueState(state.copy(retryAt = retryAt))
+        if (requestedAt >= state.retryAt) backgroundFailure = failure
         return retryAt
     }
 }
