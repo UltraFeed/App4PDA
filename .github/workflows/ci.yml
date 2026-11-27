@@ -7,24 +7,20 @@ on:
   workflow_call:
     outputs:
       version:
-        description: Sign APK
+        description: App version of the signed APK
         value: ${{ jobs.sign.outputs.version }}
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   checks:
     runs-on: ubuntu-26.04
     timeout-minutes: 60
-    permissions:
-      contents: read
-      actions: read
-      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -42,25 +38,19 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
 
-      - uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
-        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-        with:
-          languages: java-kotlin
-          build-mode: manual
-
       - name: Test, lint, Detekt, Spotless, debug APK
-        run: ./gradlew verifyDebug --continue --no-build-cache --no-configuration-cache
+        run: ./gradlew verifyDebug --continue --build-cache --no-configuration-cache
 
-      - uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
-        if: ${{ success() && (github.event_name == 'push' || github.event_name == 'pull_request') }}
+      - name: Stop Gradle
+        if: ${{ always() }}
+        run: ./gradlew --stop
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && hashFiles('app/build/outputs/apk/debug/*.apk') != '' }}
         with:
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            build/app/outputs/apk/debug/*.apk
-          archive: false
+          name: debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          compression-level: 0
           if-no-files-found: error
           retention-days: 14
 
@@ -71,8 +61,6 @@ jobs:
           path: |
             app/build/test-results/
             app/build/reports/
-            build/app/test-results/
-            build/app/reports/
             build/reports/
             build/spotless/
           include-hidden-files: true
@@ -84,8 +72,6 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 45
     environment: release
-    permissions:
-      contents: write
     outputs:
       version: ${{ steps.version.outputs.value }}
     steps:
@@ -104,9 +90,6 @@ jobs:
           packages: 'platform-tools platforms;android-37.1 build-tools;37.0.0 ndk;28.2.13676358'
 
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
-        with:
-          cache-disabled: true
-          dependency-graph: ${{ github.event_name == 'push' && 'generate-and-submit' || 'disabled' }}
 
       - name: Restore signing keystore
         id: keystore
@@ -121,7 +104,11 @@ jobs:
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew :app:assembleRelease
+        run: ./gradlew :app:assembleRelease --build-cache --no-configuration-cache
+
+      - name: Stop Gradle
+        if: ${{ always() }}
+        run: ./gradlew --stop
 
       - name: Read version
         id: version
@@ -132,7 +119,17 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
+          name: signed-apk
           path: app/build/outputs/apk/release/app-release.apk
-          archive: false
+          compression-level: 0
           if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: ${{ !cancelled() }}
+        with:
+          name: release-diagnostics
+          path: |
+            app/build/outputs/mapping/release/
+            app/build/reports/
           retention-days: 30
